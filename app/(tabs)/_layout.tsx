@@ -1,6 +1,6 @@
 import { Tabs } from 'expo-router';
-import { TouchableOpacity, StyleSheet } from 'react-native';
-import { BarChart3, Calendar, CreditCard, User, Menu } from 'lucide-react-native';
+import { TouchableOpacity } from 'react-native';
+import { BarChart3, Calendar, CreditCard, User, Menu, Settings } from 'lucide-react-native';
 import { useContext } from 'react';
 import { UserContext } from '../context/UserContext';
 import { DrawerActions, useNavigation } from '@react-navigation/native';
@@ -24,7 +24,7 @@ export default function TabLayout() {
           currentUser?.role === 'admin' ? (
             <TouchableOpacity 
               onPress={openDrawer}
-              style={styles.menuButton}
+              style={{ padding: 12 }}
             >
               <Menu size={24} color="#4B5563" />
             </TouchableOpacity>
@@ -69,12 +69,15 @@ export default function TabLayout() {
           tabBarIcon: ({ color, size }) => <User size={size} color={color} />
         }}
       />
+      {currentUser?.role === 'admin' && (
+        <Tabs.Screen
+          name="admin"
+          options={{
+            title: 'Yönetim',
+            tabBarIcon: ({ color, size }) => <Settings size={size} color={color} />
+          }}
+        />
+      )}
     </Tabs>
   );
 }
-
-const styles = StyleSheet.create({
-  menuButton: {
-    padding: 12,
-  }
-});
