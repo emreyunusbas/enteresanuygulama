@@ -2,15 +2,37 @@ import { Stack } from 'expo-router';
 
 export default function AdminLayout() {
   return (
-    <Stack>
+    <Stack screenOptions={{
+      headerStyle: {
+        backgroundColor: '#4F46E5',
+      },
+      headerTintColor: '#fff',
+      headerTitleStyle: {
+        fontWeight: 'bold',
+      },
+    }}>
       <Stack.Screen 
         name="index" 
         options={{ 
           title: 'Yönetim Paneli',
-          headerStyle: {
-            backgroundColor: '#4F46E5',
-          },
-          headerTintColor: '#fff',
+        }} 
+      />
+      <Stack.Screen 
+        name="instructors" 
+        options={{ 
+          title: 'Eğitmenler',
+        }} 
+      />
+      <Stack.Screen 
+        name="students" 
+        options={{ 
+          title: 'Öğrenciler',
+        }} 
+      />
+      <Stack.Screen 
+        name="classes" 
+        options={{ 
+          title: 'Dersler',
         }} 
       />
     </Stack>
