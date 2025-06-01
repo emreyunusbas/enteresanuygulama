@@ -54,6 +54,12 @@ const studentData = {
         method: 'cash',
         description: 'Mart Ayı 2 Ders Paketi'
       }
+    ],
+    classOccupancy: [
+      { name: 'Temel Pilates', rate: 85 },
+      { name: 'İleri Pilates', rate: 78 },
+      { name: 'Yoga', rate: 82 },
+      { name: 'Özel Ders', rate: 95 }
     ]
   },
   4: {
@@ -83,6 +89,11 @@ const studentData = {
         method: 'creditCard',
         description: 'Mayıs Ayı 2 Ders Paketi'
       }
+    ],
+    classOccupancy: [
+      { name: 'Temel Pilates', rate: 82 },
+      { name: 'Yoga', rate: 75 },
+      { name: 'Özel Ders', rate: 90 }
     ]
   }
 };
@@ -200,6 +211,34 @@ export default function ProfileScreen() {
         </View>
 
         <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Ders Doluluk Oranları</Text>
+          <View style={styles.occupancyList}>
+            {userData.classOccupancy.map((classType, index) => (
+              <View key={index} style={styles.occupancyItem}>
+                <View style={styles.occupancyHeader}>
+                  <Text style={styles.className}>{classType.name}</Text>
+                  <Text style={styles.occupancyRate}>%{classType.rate}</Text>
+                </View>
+                <View style={styles.progressBar}>
+                  <View 
+                    style={[
+                      styles.progressFill,
+                      { 
+                        width: `${classType.rate}%`,
+                        backgroundColor: 
+                          classType.rate >= 90 ? '#059669' :
+                          classType.rate >= 80 ? '#3B82F6' :
+                          '#F59E0B'
+                      }
+                    ]}
+                  />
+                </View>
+              </View>
+            ))}
+          </View>
+        </View>
+
+        <View style={styles.section}>
           <Text style={styles.sectionTitle}>Ders Geçmişi</Text>
           {userData.classHistory.map((cls, index) => (
             <View key={index} style={styles.classCard}>
@@ -228,7 +267,7 @@ export default function ProfileScreen() {
           ))}
         </View>
 
-        <View style={styles.section}>
+        <View style={[styles.section, { marginBottom: 100 }]}>
           <Text style={styles.sectionTitle}>Ödeme Geçmişi</Text>
           {userData.payments.map((payment) => {
             const { icon: PaymentIcon, color, label } = getPaymentMethodIcon(payment.method);
@@ -351,13 +390,54 @@ const styles = StyleSheet.create({
   },
   section: {
     margin: 16,
-    marginTop: 0
+    marginTop: 0,
+    backgroundColor: 'white',
+    borderRadius: 12,
+    padding: 16,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3
   },
   sectionTitle: {
     fontSize: 18,
     fontWeight: '600',
     color: '#1F2937',
+    marginBottom: 16
+  },
+  occupancyList: {
+    gap: 12
+  },
+  occupancyItem: {
     marginBottom: 12
+  },
+  occupancyHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 8
+  },
+  className: {
+    fontSize: 14,
+    color: '#4B5563'
+  },
+  occupancyRate: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#1F2937'
+  },
+  progressBar: {
+    height: 8,
+    backgroundColor: '#E5E7EB',
+    borderRadius: 4,
+    overflow: 'hidden'
+  },
+  progressFill: {
+    height: '100%',
+    borderRadius: 4
   },
   classCard: {
     backgroundColor: 'white',
@@ -378,11 +458,6 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'flex-start',
     marginBottom: 12
-  },
-  className: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#1F2937'
   },
   classInfo: {
     fontSize: 14,
