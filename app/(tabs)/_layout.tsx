@@ -16,19 +16,7 @@ export default function TabLayout() {
   return (
     <Tabs
       screenOptions={{
-        headerShown: true,
-        headerStyle: {
-          backgroundColor: 'white',
-        },
-        headerRight: () => 
-          currentUser?.role === 'admin' ? (
-            <TouchableOpacity 
-              onPress={openDrawer}
-              style={{ padding: 12 }}
-            >
-              <Menu size={24} color="#4B5563" />
-            </TouchableOpacity>
-          ) : null,
+        headerShown: false,
         tabBarStyle: {
           backgroundColor: 'white',
           borderTopWidth: 1,
