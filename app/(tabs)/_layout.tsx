@@ -1,5 +1,5 @@
 import { Tabs } from 'expo-router';
-import { TouchableOpacity, View, Text, StyleSheet, Platform, Dimensions } from 'react-native';
+import { TouchableOpacity, View, Text, StyleSheet } from 'react-native';
 import { BarChart3, Calendar, User, Menu } from 'lucide-react-native';
 import { useContext } from 'react';
 import { UserContext } from '../context/UserContext';
@@ -23,34 +23,9 @@ export default function TabLayout() {
             borderTopWidth: 0,
             paddingBottom: 8,
             paddingTop: 8,
-            height: Platform.select({
-              ios: 80,
-              android: 60,
-              default: 60
-            }),
+            height: 60,
             position: 'absolute',
-            bottom: Platform.select({
-              ios: 40,
-              android: 24,
-              default: 24
-            }),
-            left: '5%',
-            right: '5%',
-            borderRadius: 16,
-            ...Platform.select({
-              ios: {
-                shadowColor: '#000',
-                shadowOffset: { width: 0, height: 4 },
-                shadowOpacity: 0.15,
-                shadowRadius: 8,
-              },
-              android: {
-                elevation: 8,
-              },
-              default: {
-                boxShadow: '0 4px 8px rgba(0,0,0,0.15)'
-              }
-            }),
+            bottom: 40, // Move tabs up to make room for footer
           },
           tabBarActiveTintColor: '#ffffff',
           tabBarInactiveTintColor: 'rgba(255, 255, 255, 0.6)'
@@ -87,8 +62,6 @@ export default function TabLayout() {
   );
 }
 
-const { width } = Dimensions.get('window');
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -99,26 +72,19 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
-    height: Platform.select({
-      ios: 40,
-      android: 24,
-      default: 24
-    }),
+    height: 40,
     backgroundColor: '#4F46E5',
     justifyContent: 'center',
     alignItems: 'center',
     borderTopWidth: 0,
-    width: '100%',
-    paddingHorizontal: 16,
   },
   footerText: {
-    fontSize: width < 375 ? 10 : 12,
+    fontSize: 12,
     color: '#ffffff',
     fontWeight: '500',
-    textAlign: 'center',
   },
   registered: {
-    fontSize: width < 375 ? 6 : 8,
+    fontSize: 8,
     verticalAlign: 'top',
     marginLeft: 1,
     color: '#ffffff',
