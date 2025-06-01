@@ -32,10 +32,25 @@ export default function InstructorsScreen() {
     phone: '',
     specialties: ''
   });
+  const [instructorsList, setInstructorsList] = useState(instructors);
 
   const handleSubmit = () => {
-    // Handle form submission
-    console.log('Form submitted:', formData);
+    if (!formData.name || !formData.email || !formData.phone || !formData.specialties) {
+      alert('Lütfen tüm alanları doldurun.');
+      return;
+    }
+
+    const newInstructor = {
+      id: instructorsList.length + 1,
+      name: formData.name,
+      email: formData.email,
+      phone: formData.phone,
+      specialties: formData.specialties.split(',').map(s => s.trim()),
+      rating: 0,
+      totalClasses: 0
+    };
+
+    setInstructorsList([...instructorsList, newInstructor]);
     setShowForm(false);
     setFormData({
       name: '',
@@ -60,7 +75,7 @@ export default function InstructorsScreen() {
         </View>
 
         <View style={styles.instructorList}>
-          {instructors.map((instructor) => (
+          {instructorsList.map((instructor) => (
             <View key={instructor.id} style={styles.instructorCard}>
               <View style={styles.cardHeader}>
                 <View>
@@ -129,6 +144,7 @@ export default function InstructorsScreen() {
                   onChangeText={(text) => setFormData({ ...formData, email: text })}
                   placeholder="E-posta giriniz"
                   keyboardType="email-address"
+                  autoCapitalize="none"
                 />
               </View>
 
@@ -151,6 +167,7 @@ export default function InstructorsScreen() {
                   onChangeText={(text) => setFormData({ ...formData, specialties: text })}
                   placeholder="Uzmanlık alanlarını virgülle ayırarak giriniz"
                 />
+                <Text style={styles.helperText}>Örnek: Pilates, Yoga, Meditasyon</Text>
               </View>
 
               <TouchableOpacity style={styles.submitButton} onPress={handleSubmit}>
@@ -237,6 +254,7 @@ const styles = StyleSheet.create({
   },
   specialties: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
     gap: 8,
   },
   specialtyBadge: {
@@ -331,6 +349,11 @@ const styles = StyleSheet.create({
     padding: 12,
     fontSize: 14,
     color: '#1F2937',
+  },
+  helperText: {
+    fontSize: 12,
+    color: '#6B7280',
+    marginTop: 4,
   },
   submitButton: {
     backgroundColor: '#4F46E5',
