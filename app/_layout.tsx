@@ -71,7 +71,7 @@ export default function RootLayout() {
     <UserProvider>
       <AttendanceProvider>
         <DrawerContent />
-        <StatusBar style="auto" />
+        <StatusBar style="light" backgroundColor="#4F46E5" />
       </AttendanceProvider>
     </UserProvider>
   );
