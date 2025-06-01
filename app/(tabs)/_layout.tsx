@@ -19,17 +19,16 @@ export default function TabLayout() {
         screenOptions={{
           headerShown: false,
           tabBarStyle: {
-            backgroundColor: 'white',
-            borderTopWidth: 1,
-            borderTopColor: '#E5E7EB',
+            backgroundColor: '#4F46E5',
+            borderTopWidth: 0,
             paddingBottom: 8,
             paddingTop: 8,
             height: 60,
             position: 'absolute',
             bottom: 40, // Move tabs up to make room for footer
           },
-          tabBarActiveTintColor: '#3B82F6',
-          tabBarInactiveTintColor: '#6B7280'
+          tabBarActiveTintColor: '#ffffff',
+          tabBarInactiveTintColor: 'rgba(255, 255, 255, 0.6)'
         }}
       >
         <Tabs.Screen
@@ -74,20 +73,20 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     height: 40,
-    backgroundColor: 'white',
+    backgroundColor: '#4F46E5',
     justifyContent: 'center',
     alignItems: 'center',
-    borderTopWidth: 1,
-    borderTopColor: '#E5E7EB',
+    borderTopWidth: 0,
   },
   footerText: {
     fontSize: 12,
-    color: '#6B7280',
+    color: '#ffffff',
     fontWeight: '500',
   },
   registered: {
     fontSize: 8,
     verticalAlign: 'top',
     marginLeft: 1,
+    color: '#ffffff',
   },
 });
