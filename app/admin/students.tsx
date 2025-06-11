@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Platform, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Plus, Phone, Mail, Calendar, CheckCircle, X, Edit, Trash } from 'lucide-react-native';
+import { Plus, Phone, Mail, Calendar, CheckCircle, X, FileEdit as Edit, Trash } from 'lucide-react-native';
 import { useData } from '../context/DataContext';
 
 export default function StudentsScreen() {
