@@ -4,62 +4,12 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Clock, User, Users, CheckCircle, XCircle, Plus, Trash } from 'lucide-react-native';
 import { UserContext } from '../context/UserContext';
 import { useAttendance } from '../context/AttendanceContext';
-
-const users = [
-  { id: 3, name: 'Zeynep Kaya', role: 'student', email: 'zeynep@email.com', phone: '0534 555 1234' },
-  { id: 4, name: 'Ali Özkan', role: 'student', email: 'ali@email.com', phone: '0535 444 5678' },
-  { id: 5, name: 'Fatma Şahin', role: 'student', email: 'fatma@email.com', phone: '0536 777 8899' },
-  { id: 6, name: 'Ahmet Yıldız', role: 'student', email: 'ahmet@email.com', phone: '0537 111 2233' },
-  { id: 7, name: 'Elif Demir', role: 'student', email: 'elif@email.com', phone: '0538 444 5566' },
-  { id: 8, name: 'Can Kaya', role: 'student', email: 'can@email.com', phone: '0539 777 8899' },
-  { id: 9, name: 'Selin Arslan', role: 'student', email: 'selin@email.com', phone: '0530 111 2233' },
-  { id: 10, name: 'Burak Yılmaz', role: 'student', email: 'burak@email.com', phone: '0531 444 5566' },
-  { id: 11, name: 'Deniz Şahin', role: 'student', email: 'deniz@email.com', phone: '0532 777 8899' }
-];
-
-const classes = [
-  { 
-    id: 1, 
-    name: 'Pilates Temel', 
-    instructor: 'Ayşe Yılmaz', 
-    time: '09:00', 
-    date: '2025-05-26', 
-    capacity: 5, 
-    enrolled: 4,
-    price: 150,
-    studentsAssigned: [3, 4, 5, 6]
-  },
-  { 
-    id: 2, 
-    name: 'Yoga Flow', 
-    instructor: 'Mehmet Demir', 
-    time: '10:30', 
-    date: '2025-05-26', 
-    capacity: 5, 
-    enrolled: 5,
-    price: 120,
-    studentsAssigned: [3, 4, 7, 8, 9]
-  },
-  { 
-    id: 3, 
-    name: 'Pilates İleri', 
-    instructor: 'Ayşe Yılmaz', 
-    time: '18:00', 
-    date: '2025-05-26', 
-    capacity: 5, 
-    enrolled: 3,
-    price: 180,
-    studentsAssigned: [3, 10, 11]
-  },
-];
+import { useData } from '../context/DataContext';
 
 export default function ClassesScreen() {
   const { currentUser } = useContext(UserContext);
   const { attendance, addAttendance, approveAttendance } = useAttendance();
-  const [instructors, setInstructors] = useState([
-    { id: 1, name: 'Ayşe Yılmaz', email: 'ayse@studio.com', phone: '0532 123 4567' },
-    { id: 2, name: 'Mehmet Demir', email: 'mehmet@studio.com', phone: '0533 987 6543' }
-  ]);
+  const { instructors, classes, students } = useData();
 
   const handleAttendanceCheck = (classId: number, studentId: number) => {
     addAttendance({
@@ -76,7 +26,7 @@ export default function ClassesScreen() {
   };
 
   const handleAddInstructor = () => {
-    Alert.alert('Yeni Eğitmen Ekle', 'Bu özellik yakında eklenecek');
+    Alert.alert('Yeni Eğitmen Ekle', 'Bu özellik Admin Paneli > Veri Yönetimi bölümünden kullanılabilir');
   };
 
   const handleRemoveInstructor = (instructorId: number) => {
@@ -89,7 +39,7 @@ export default function ClassesScreen() {
           text: 'Sil',
           style: 'destructive',
           onPress: () => {
-            setInstructors(prev => prev.filter(inst => inst.id !== instructorId));
+            Alert.alert('Bilgi', 'Bu özellik Admin Paneli > Veri Yönetimi bölümünden kullanılabilir');
           }
         }
       ]
@@ -188,7 +138,7 @@ export default function ClassesScreen() {
 
   // Helper function to get student names for a class
   const getEnrolledStudents = (studentIds: number[]) => {
-    return users.filter(user => studentIds.includes(user.id));
+    return students.filter(user => studentIds.includes(user.id));
   };
 
   return (

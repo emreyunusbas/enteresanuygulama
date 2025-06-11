@@ -2,12 +2,19 @@ import React from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
-import { Users, BookOpen, Calendar, Award, TrendingUp } from 'lucide-react-native';
+import { Users, BookOpen, Calendar, Award, TrendingUp, Database } from 'lucide-react-native';
 
 export default function AdminPanel() {
   const router = useRouter();
 
   const menuItems = [
+    {
+      title: 'Veri Yönetimi',
+      description: 'Öğrenci, eğitmen ve ders bilgilerini yönetin',
+      icon: Database,
+      route: '/admin/data-management',
+      color: '#EC4899'
+    },
     {
       title: 'Eğitmenler',
       description: 'Eğitmen yönetimi ve performans takibi',

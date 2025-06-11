@@ -4,6 +4,7 @@ import { StatusBar } from 'expo-status-bar';
 import { useFrameworkReady } from '@/hooks/useFrameworkReady';
 import { UserProvider } from './context/UserContext';
 import { AttendanceProvider } from './context/AttendanceContext';
+import { DataProvider } from './context/DataContext';
 import { useContext } from 'react';
 import { UserContext } from './context/UserContext';
 
@@ -18,6 +19,15 @@ function DrawerContent() {
         name="(tabs)" 
         options={{ 
           drawerLabel: 'Ana Sayfa',
+          drawerItemStyle: { 
+            display: isAdmin ? 'flex' : 'none'
+          }
+        }} 
+      />
+      <Drawer.Screen 
+        name="admin" 
+        options={{ 
+          drawerLabel: 'Admin Paneli',
           drawerItemStyle: { 
             display: isAdmin ? 'flex' : 'none'
           }
@@ -68,11 +78,13 @@ export default function RootLayout() {
   useFrameworkReady();
 
   return (
-    <UserProvider>
-      <AttendanceProvider>
-        <DrawerContent />
-        <StatusBar style="light" backgroundColor="#4F46E5" />
-      </AttendanceProvider>
-    </UserProvider>
+    <DataProvider>
+      <UserProvider>
+        <AttendanceProvider>
+          <DrawerContent />
+          <StatusBar style="light" backgroundColor="#4F46E5" />
+        </AttendanceProvider>
+      </UserProvider>
+    </DataProvider>
   );
 }

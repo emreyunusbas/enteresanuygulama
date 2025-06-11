@@ -3,109 +3,12 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-nati
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Calendar, CreditCard, Clock, CheckCircle, XCircle, ChevronDown } from 'lucide-react-native';
 import { UserContext } from '../context/UserContext';
-
-const studentData = {
-  3: {
-    classHistory: [
-      {
-        date: '2025-05-26',
-        className: 'Pilates Temel',
-        instructor: 'Ayşe Yılmaz',
-        time: '09:00',
-        attended: true,
-        price: 150
-      },
-      {
-        date: '2025-05-25',
-        className: 'Yoga Flow',
-        instructor: 'Mehmet Demir',
-        time: '10:30',
-        attended: true,
-        price: 120
-      },
-      {
-        date: '2025-05-24',
-        className: 'Pilates İleri',
-        instructor: 'Ayşe Yılmaz',
-        time: '18:00',
-        attended: false,
-        price: 180
-      }
-    ],
-    payments: [
-      {
-        id: 1,
-        date: '2025-05-20',
-        amount: 450,
-        method: 'creditCard',
-        description: 'Mayıs Ayı 3 Ders Paketi'
-      },
-      {
-        id: 2,
-        date: '2025-04-15',
-        amount: 600,
-        method: 'bankTransfer',
-        description: 'Nisan Ayı 4 Ders Paketi'
-      },
-      {
-        id: 3,
-        date: '2025-03-10',
-        amount: 300,
-        method: 'cash',
-        description: 'Mart Ayı 2 Ders Paketi'
-      }
-    ],
-    classOccupancy: [
-      { name: 'Temel Pilates', rate: 85 },
-      { name: 'İleri Pilates', rate: 78 },
-      { name: 'Yoga', rate: 82 },
-      { name: 'Özel Ders', rate: 95 }
-    ]
-  },
-  4: {
-    classHistory: [
-      {
-        date: '2025-05-26',
-        className: 'Pilates Temel',
-        instructor: 'Ayşe Yılmaz',
-        time: '09:00',
-        attended: true,
-        price: 150
-      },
-      {
-        date: '2025-05-25',
-        className: 'Yoga Flow',
-        instructor: 'Mehmet Demir',
-        time: '10:30',
-        attended: false,
-        price: 120
-      }
-    ],
-    payments: [
-      {
-        id: 1,
-        date: '2025-05-20',
-        amount: 300,
-        method: 'creditCard',
-        description: 'Mayıs Ayı 2 Ders Paketi'
-      }
-    ],
-    classOccupancy: [
-      { name: 'Temel Pilates', rate: 82 },
-      { name: 'Yoga', rate: 75 },
-      { name: 'Özel Ders', rate: 90 }
-    ]
-  }
-};
-
-const students = [
-  { id: 3, name: 'Zeynep Kaya' },
-  { id: 4, name: 'Ali Özkan' }
-];
+import { useData } from '../context/DataContext';
 
 export default function ProfileScreen() {
   const { currentUser } = useContext(UserContext);
-  const [selectedStudentId, setSelectedStudentId] = useState(students[0].id);
+  const { students } = useData();
+  const [selectedStudentId, setSelectedStudentId] = useState(students[0]?.id);
 
   if (!currentUser) {
     return (
@@ -135,7 +38,20 @@ export default function ProfileScreen() {
   }
 
   const activeStudentId = isAdmin ? selectedStudentId : currentUser.id;
-  const userData = studentData[activeStudentId];
+  const userData = students.find(s => s.id === activeStudentId);
+
+  if (!userData) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={styles.emptyState}>
+          <Text style={styles.emptyStateText}>
+            Öğrenci verisi bulunamadı.
+          </Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
   const totalSpent = userData.payments.reduce((sum, payment) => sum + payment.amount, 0);
   const attendedClasses = userData.classHistory.filter(cls => cls.attended).length;
   const totalClasses = userData.classHistory.length;

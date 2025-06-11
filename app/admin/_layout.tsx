@@ -35,6 +35,12 @@ export default function AdminLayout() {
           title: 'Dersler',
         }} 
       />
+      <Stack.Screen 
+        name="data-management" 
+        options={{ 
+          title: 'Veri Yönetimi',
+        }} 
+      />
     </Stack>
   );
 }
