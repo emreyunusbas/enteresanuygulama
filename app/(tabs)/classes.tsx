@@ -1,15 +1,153 @@
 import React, { useContext, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Platform, Alert } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Platform, Alert, TextInput } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Clock, User, Users, CheckCircle, XCircle, Plus, Trash } from 'lucide-react-native';
+import { Clock, User, Users, CheckCircle, XCircle, Plus, Trash, Calendar, X, Save, UserPlus, UserMinus, Home } from 'lucide-react-native';
 import { UserContext } from '../context/UserContext';
 import { useAttendance } from '../context/AttendanceContext';
 import { useData } from '../context/DataContext';
+import { useRouter } from 'expo-router';
 
 export default function ClassesScreen() {
-  const { currentUser } = useContext(UserContext);
+  const { currentUser, setCurrentUser } = useContext(UserContext);
   const { attendance, addAttendance, approveAttendance } = useAttendance();
-  const { instructors, classes, students } = useData();
+  const { instructors, classes, students, addClass, updateClass, deleteClass } = useData();
+  const router = useRouter();
+
+  const [showClassForm, setShowClassForm] = useState(false);
+  const [editingClass, setEditingClass] = useState(null);
+  const [showStudentAssignment, setShowStudentAssignment] = useState(null);
+  const [classFormData, setClassFormData] = useState({
+    name: '',
+    time: '',
+    date: '',
+    capacity: '',
+    price: ''
+  });
+
+  const handleGoHome = () => {
+    setCurrentUser(null);
+    router.replace('/');
+  };
+
+  const resetClassForm = () => {
+    setClassFormData({
+      name: '',
+      time: '',
+      date: '',
+      capacity: '',
+      price: ''
+    });
+    setEditingClass(null);
+    setShowClassForm(false);
+  };
+
+  const handleClassSubmit = () => {
+    if (!classFormData.name || !classFormData.time || !classFormData.date || !classFormData.capacity || !classFormData.price) {
+      Alert.alert('Hata', 'Lütfen tüm alanları doldurun.');
+      return;
+    }
+
+    try {
+      const classData = {
+        name: classFormData.name,
+        instructor: currentUser?.name || '',
+        time: classFormData.time,
+        date: classFormData.date,
+        capacity: parseInt(classFormData.capacity) || 0,
+        enrolled: editingClass?.enrolled || 0,
+        price: parseInt(classFormData.price) || 0,
+        studentsAssigned: editingClass?.studentsAssigned || []
+      };
+
+      if (editingClass) {
+        updateClass(editingClass.id, classData);
+        Alert.alert('Başarılı', 'Ders güncellendi!');
+      } else {
+        addClass(classData);
+        Alert.alert('Başarılı', 'Yeni ders eklendi!');
+      }
+
+      resetClassForm();
+    } catch (error) {
+      Alert.alert('Hata', 'İşlem sırasında bir hata oluştu.');
+    }
+  };
+
+  const handleEditClass = (cls) => {
+    if (currentUser?.role === 'instructor' && cls.instructor !== currentUser.name) {
+      Alert.alert('Hata', 'Sadece kendi derslerinizi düzenleyebilirsiniz.');
+      return;
+    }
+
+    setEditingClass(cls);
+    setClassFormData({
+      name: cls.name,
+      time: cls.time,
+      date: cls.date,
+      capacity: cls.capacity.toString(),
+      price: cls.price.toString()
+    });
+    setShowClassForm(true);
+  };
+
+  const handleDeleteClass = (cls) => {
+    if (currentUser?.role === 'instructor' && cls.instructor !== currentUser.name) {
+      Alert.alert('Hata', 'Sadece kendi derslerinizi silebilirsiniz.');
+      return;
+    }
+
+    Alert.alert(
+      'Ders Sil',
+      `${cls.name} dersini silmek istediğinizden emin misiniz?`,
+      [
+        { text: 'İptal', style: 'cancel' },
+        {
+          text: 'Sil',
+          style: 'destructive',
+          onPress: () => {
+            deleteClass(cls.id);
+            Alert.alert('Başarılı', 'Ders silindi!');
+          }
+        }
+      ]
+    );
+  };
+
+  const handleAssignStudent = (classId, studentId) => {
+    const classToUpdate = classes.find(c => c.id === classId);
+    if (!classToUpdate) return;
+
+    if (classToUpdate.studentsAssigned.includes(studentId)) {
+      Alert.alert('Bilgi', 'Bu öğrenci zaten derse kayıtlı.');
+      return;
+    }
+
+    if (classToUpdate.enrolled >= classToUpdate.capacity) {
+      Alert.alert('Hata', 'Ders kapasitesi dolu.');
+      return;
+    }
+
+    const updatedStudents = [...classToUpdate.studentsAssigned, studentId];
+    updateClass(classId, {
+      studentsAssigned: updatedStudents,
+      enrolled: updatedStudents.length
+    });
+
+    Alert.alert('Başarılı', 'Öğrenci derse atandı!');
+  };
+
+  const handleRemoveStudent = (classId, studentId) => {
+    const classToUpdate = classes.find(c => c.id === classId);
+    if (!classToUpdate) return;
+
+    const updatedStudents = classToUpdate.studentsAssigned.filter(id => id !== studentId);
+    updateClass(classId, {
+      studentsAssigned: updatedStudents,
+      enrolled: updatedStudents.length
+    });
+
+    Alert.alert('Başarılı', 'Öğrenci dersten çıkarıldı!');
+  };
 
   const handleAttendanceCheck = (classId: number, studentId: number) => {
     addAttendance({
@@ -23,63 +161,6 @@ export default function ClassesScreen() {
 
   const handleAttendanceApproval = (classId: number, studentId: number) => {
     approveAttendance(classId, studentId);
-  };
-
-  const handleAddInstructor = () => {
-    Alert.alert('Yeni Eğitmen Ekle', 'Bu özellik Admin Paneli > Veri Yönetimi bölümünden kullanılabilir');
-  };
-
-  const handleRemoveInstructor = (instructorId: number) => {
-    Alert.alert(
-      'Eğitmen Sil',
-      'Bu eğitmeni silmek istediğinizden emin misiniz?',
-      [
-        { text: 'İptal', style: 'cancel' },
-        {
-          text: 'Sil',
-          style: 'destructive',
-          onPress: () => {
-            Alert.alert('Bilgi', 'Bu özellik Admin Paneli > Veri Yönetimi bölümünden kullanılabilir');
-          }
-        }
-      ]
-    );
-  };
-
-  const renderInstructorManagement = () => {
-    if (currentUser?.role !== 'admin') return null;
-
-    return (
-      <View style={styles.section}>
-        <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Eğitmen Yönetimi</Text>
-          <TouchableOpacity
-            style={styles.addButton}
-            onPress={handleAddInstructor}
-          >
-            <Plus size={20} color="white" />
-            <Text style={styles.addButtonText}>Yeni Eğitmen</Text>
-          </TouchableOpacity>
-        </View>
-
-        <View style={styles.instructorList}>
-          {instructors.map(instructor => (
-            <View key={instructor.id} style={styles.instructorCard}>
-              <View style={styles.instructorInfo}>
-                <Text style={styles.instructorName}>{instructor.name}</Text>
-                <Text style={styles.instructorContact}>{instructor.phone}</Text>
-              </View>
-              <TouchableOpacity
-                style={styles.removeButton}
-                onPress={() => handleRemoveInstructor(instructor.id)}
-              >
-                <Trash size={20} color="#EF4444" />
-              </TouchableOpacity>
-            </View>
-          ))}
-        </View>
-      </View>
-    );
   };
 
   const renderAttendanceStatus = (classId: number, studentId: number) => {
@@ -118,12 +199,16 @@ export default function ClassesScreen() {
     return null;
   };
 
-  // Filter classes based on user role and availability
+  // Filter classes based on user role
   const visibleClasses = classes.filter(cls => {
     if (!currentUser) return false;
     
-    if (currentUser.role === 'admin' || currentUser.role === 'instructor') {
+    if (currentUser.role === 'admin') {
       return true;
+    }
+
+    if (currentUser.role === 'instructor') {
+      return cls.instructor === currentUser.name;
     }
 
     // For students, show only classes they're not enrolled in and that have space
@@ -141,26 +226,61 @@ export default function ClassesScreen() {
     return students.filter(user => studentIds.includes(user.id));
   };
 
+  // Get available students for assignment (not already enrolled)
+  const getAvailableStudents = (classId: number) => {
+    const classData = classes.find(c => c.id === classId);
+    if (!classData) return [];
+    
+    return students.filter(student => !classData.studentsAssigned.includes(student.id));
+  };
+
+  const canManageClass = (cls) => {
+    return currentUser?.role === 'admin' || 
+           (currentUser?.role === 'instructor' && cls.instructor === currentUser.name);
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView style={styles.scrollView}>
-        {renderInstructorManagement()}
-        
         <View style={styles.header}>
           <Text style={styles.title}>Ders Programı</Text>
-          {currentUser?.role === 'student' && (
-            <Text style={styles.subtitle}>Katılabileceğiniz dersler</Text>
-          )}
-          {currentUser?.role === 'admin' && (
-            <Text style={styles.subtitle}>Tüm dersler ve kayıtlı öğrenciler</Text>
-          )}
+          <View style={styles.headerActions}>
+            <TouchableOpacity
+              style={styles.homeButton}
+              onPress={handleGoHome}
+            >
+              <Home size={20} color="white" />
+              <Text style={styles.homeButtonText}>Ana Sayfa</Text>
+            </TouchableOpacity>
+            {(currentUser?.role === 'admin' || currentUser?.role === 'instructor') && (
+              <TouchableOpacity
+                style={styles.addButton}
+                onPress={() => setShowClassForm(true)}
+              >
+                <Plus size={20} color="white" />
+                <Text style={styles.addButtonText}>Yeni Ders</Text>
+              </TouchableOpacity>
+            )}
+          </View>
         </View>
+
+        {currentUser?.role === 'student' && (
+          <Text style={styles.subtitle}>Katılabileceğiniz dersler</Text>
+        )}
+        {currentUser?.role === 'instructor' && (
+          <Text style={styles.subtitle}>Verdiğiniz dersler</Text>
+        )}
+        {currentUser?.role === 'admin' && (
+          <Text style={styles.subtitle}>Tüm dersler ve kayıtlı öğrenciler</Text>
+        )}
 
         {visibleClasses.length === 0 ? (
           <View style={styles.emptyState}>
             <Text style={styles.emptyStateText}>
               {currentUser?.role === 'student' 
                 ? 'Şu anda katılabileceğiniz uygun ders bulunmuyor.'
+                : currentUser?.role === 'instructor'
+                ? 'Henüz ders eklememişsiniz. Yeni ders eklemek için + butonunu kullanın.'
                 : 'Henüz ders bulunmuyor.'}
             </Text>
           </View>
@@ -170,8 +290,26 @@ export default function ClassesScreen() {
               <View key={cls.id} style={styles.classCard}>
                 <View style={styles.classHeader}>
                   <Text style={styles.className}>{cls.name}</Text>
-                  <View style={styles.priceBadge}>
-                    <Text style={styles.priceText}>₺{cls.price}</Text>
+                  <View style={styles.classHeaderActions}>
+                    <View style={styles.priceBadge}>
+                      <Text style={styles.priceText}>₺{cls.price}</Text>
+                    </View>
+                    {canManageClass(cls) && (
+                      <View style={styles.classActions}>
+                        <TouchableOpacity
+                          style={styles.editButton}
+                          onPress={() => handleEditClass(cls)}
+                        >
+                          <Text style={styles.editButtonText}>Düzenle</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                          style={styles.deleteButton}
+                          onPress={() => handleDeleteClass(cls)}
+                        >
+                          <Trash size={16} color="#EF4444" />
+                        </TouchableOpacity>
+                      </View>
+                    )}
                   </View>
                 </View>
 
@@ -179,6 +317,11 @@ export default function ClassesScreen() {
                   <View style={styles.detailRow}>
                     <Clock size={16} color="#6B7280" />
                     <Text style={styles.detailText}>{cls.time}</Text>
+                  </View>
+
+                  <View style={styles.detailRow}>
+                    <Calendar size={16} color="#6B7280" />
+                    <Text style={styles.detailText}>{cls.date}</Text>
                   </View>
 
                   <View style={styles.detailRow}>
@@ -206,19 +349,39 @@ export default function ClassesScreen() {
                   </Text>
                 </View>
 
-                {(currentUser?.role === 'admin' || currentUser?.role === 'instructor') && (
-                  <View style={styles.enrolledStudents}>
-                    <Text style={styles.enrolledStudentsTitle}>Kayıtlı Öğrenciler:</Text>
-                    {getEnrolledStudents(cls.studentsAssigned).map((student) => (
-                      <View key={student.id} style={styles.studentRow}>
-                        <View style={styles.studentInfo}>
-                          <Text style={styles.studentName}>{student.name}</Text>
-                          <Text style={styles.studentContact}>{student.phone}</Text>
-                        </View>
-                        {renderAttendanceStatus(cls.id, student.id)}
+                {canManageClass(cls) && (
+                  <>
+                    <View style={styles.studentManagement}>
+                      <View style={styles.studentManagementHeader}>
+                        <Text style={styles.enrolledStudentsTitle}>Kayıtlı Öğrenciler:</Text>
+                        <TouchableOpacity
+                          style={styles.manageStudentsButton}
+                          onPress={() => setShowStudentAssignment(cls.id)}
+                        >
+                          <UserPlus size={16} color="#3B82F6" />
+                          <Text style={styles.manageStudentsText}>Öğrenci Yönet</Text>
+                        </TouchableOpacity>
                       </View>
-                    ))}
-                  </View>
+                      
+                      {getEnrolledStudents(cls.studentsAssigned).map((student) => (
+                        <View key={student.id} style={styles.studentRow}>
+                          <View style={styles.studentInfo}>
+                            <Text style={styles.studentName}>{student.name}</Text>
+                            <Text style={styles.studentContact}>{student.phone}</Text>
+                          </View>
+                          <View style={styles.studentActions}>
+                            {renderAttendanceStatus(cls.id, student.id)}
+                            <TouchableOpacity
+                              style={styles.removeStudentButton}
+                              onPress={() => handleRemoveStudent(cls.id, student.id)}
+                            >
+                              <UserMinus size={16} color="#EF4444" />
+                            </TouchableOpacity>
+                          </View>
+                        </View>
+                      ))}
+                    </View>
+                  </>
                 )}
 
                 {currentUser?.role === 'student' && (
@@ -234,6 +397,126 @@ export default function ClassesScreen() {
           </View>
         )}
       </ScrollView>
+
+      {/* Class Form Modal */}
+      {showClassForm && (
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContainer}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>
+                {editingClass ? 'Ders Düzenle' : 'Yeni Ders Ekle'}
+              </Text>
+              <TouchableOpacity onPress={resetClassForm}>
+                <X size={24} color="#4B5563" />
+              </TouchableOpacity>
+            </View>
+
+            <ScrollView style={styles.modalScrollView}>
+              <View style={styles.modalBody}>
+                <View style={styles.formField}>
+                  <Text style={styles.label}>Ders Adı</Text>
+                  <TextInput
+                    style={styles.input}
+                    value={classFormData.name}
+                    onChangeText={(text) => setClassFormData({ ...classFormData, name: text })}
+                    placeholder="Ders adı giriniz"
+                  />
+                </View>
+
+                <View style={styles.formField}>
+                  <Text style={styles.label}>Tarih</Text>
+                  <TextInput
+                    style={styles.input}
+                    value={classFormData.date}
+                    onChangeText={(text) => setClassFormData({ ...classFormData, date: text })}
+                    placeholder="YYYY-MM-DD"
+                  />
+                </View>
+
+                <View style={styles.formField}>
+                  <Text style={styles.label}>Saat</Text>
+                  <TextInput
+                    style={styles.input}
+                    value={classFormData.time}
+                    onChangeText={(text) => setClassFormData({ ...classFormData, time: text })}
+                    placeholder="09:00"
+                  />
+                </View>
+
+                <View style={styles.formField}>
+                  <Text style={styles.label}>Kapasite</Text>
+                  <TextInput
+                    style={styles.input}
+                    value={classFormData.capacity}
+                    onChangeText={(text) => setClassFormData({ ...classFormData, capacity: text })}
+                    placeholder="Kapasite giriniz"
+                    keyboardType="numeric"
+                  />
+                </View>
+
+                <View style={styles.formField}>
+                  <Text style={styles.label}>Ücret</Text>
+                  <TextInput
+                    style={styles.input}
+                    value={classFormData.price}
+                    onChangeText={(text) => setClassFormData({ ...classFormData, price: text })}
+                    placeholder="Ücret giriniz"
+                    keyboardType="numeric"
+                  />
+                </View>
+
+                <TouchableOpacity style={styles.submitButton} onPress={handleClassSubmit}>
+                  <Save size={20} color="white" />
+                  <Text style={styles.submitButtonText}>
+                    {editingClass ? 'Güncelle' : 'Kaydet'}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            </ScrollView>
+          </View>
+        </View>
+      )}
+
+      {/* Student Assignment Modal */}
+      {showStudentAssignment && (
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContainer}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Öğrenci Atama</Text>
+              <TouchableOpacity onPress={() => setShowStudentAssignment(null)}>
+                <X size={24} color="#4B5563" />
+              </TouchableOpacity>
+            </View>
+
+            <ScrollView style={styles.modalScrollView}>
+              <View style={styles.modalBody}>
+                <Text style={styles.sectionTitle}>Mevcut Öğrenciler</Text>
+                {getAvailableStudents(showStudentAssignment).map((student) => (
+                  <View key={student.id} style={styles.availableStudentRow}>
+                    <View style={styles.studentInfo}>
+                      <Text style={styles.studentName}>{student.name}</Text>
+                      <Text style={styles.studentContact}>{student.phone}</Text>
+                    </View>
+                    <TouchableOpacity
+                      style={styles.assignButton}
+                      onPress={() => handleAssignStudent(showStudentAssignment, student.id)}
+                    >
+                      <UserPlus size={16} color="white" />
+                      <Text style={styles.assignButtonText}>Ata</Text>
+                    </TouchableOpacity>
+                  </View>
+                ))}
+                
+                {getAvailableStudents(showStudentAssignment).length === 0 && (
+                  <Text style={styles.noStudentsText}>
+                    Atanabilecek öğrenci bulunmuyor.
+                  </Text>
+                )}
+              </View>
+            </ScrollView>
+          </View>
+        </View>
+      )}
     </SafeAreaView>
   );
 }
@@ -247,7 +530,13 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     padding: 16,
+    backgroundColor: 'white',
+    borderBottomWidth: 1,
+    borderBottomColor: '#E5E7EB',
   },
   title: {
     fontSize: 24,
@@ -258,6 +547,41 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#6B7280',
     marginTop: 4,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+  },
+  headerActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  homeButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#4F46E5',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 8,
+    gap: 6,
+  },
+  homeButtonText: {
+    color: 'white',
+    fontSize: 14,
+    fontWeight: '500',
+  },
+  addButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#10B981',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 8,
+    gap: 6,
+  },
+  addButtonText: {
+    color: 'white',
+    fontSize: 14,
+    fontWeight: '500',
   },
   emptyState: {
     padding: 32,
@@ -302,6 +626,12 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '600',
     color: '#1F2937',
+    flex: 1,
+  },
+  classHeaderActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
   },
   priceBadge: {
     backgroundColor: '#DBEAFE',
@@ -313,6 +643,26 @@ const styles = StyleSheet.create({
     color: '#1D4ED8',
     fontSize: 14,
     fontWeight: '500',
+  },
+  classActions: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  editButton: {
+    backgroundColor: '#EFF6FF',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 6,
+  },
+  editButtonText: {
+    color: '#3B82F6',
+    fontSize: 12,
+    fontWeight: '500',
+  },
+  deleteButton: {
+    backgroundColor: '#FEF2F2',
+    padding: 6,
+    borderRadius: 6,
   },
   classDetails: {
     marginBottom: 12,
@@ -346,61 +696,65 @@ const styles = StyleSheet.create({
     color: '#6B7280',
     marginTop: 4,
   },
-  section: {
-    backgroundColor: 'white',
-    borderRadius: 12,
-    margin: 16,
-    padding: 16,
+  studentManagement: {
+    marginTop: 16,
+    paddingTop: 16,
+    borderTopWidth: 1,
+    borderTopColor: '#E5E7EB',
   },
-  sectionHeader: {
+  studentManagementHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: 12,
   },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
+  enrolledStudentsTitle: {
+    fontSize: 16,
+    fontWeight: '600',
     color: '#1F2937',
   },
-  addButton: {
+  manageStudentsButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#3B82F6',
+    backgroundColor: '#EFF6FF',
     paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 8,
+    paddingVertical: 6,
+    borderRadius: 6,
+    gap: 4,
   },
-  addButtonText: {
-    color: 'white',
-    marginLeft: 4,
+  manageStudentsText: {
+    color: '#3B82F6',
+    fontSize: 12,
     fontWeight: '500',
   },
-  instructorList: {
-    gap: 12,
-  },
-  instructorCard: {
+  studentRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: 12,
-    backgroundColor: '#F9FAFB',
-    borderRadius: 8,
+    paddingVertical: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F3F4F6',
   },
-  instructorInfo: {
+  studentInfo: {
     flex: 1,
   },
-  instructorName: {
-    fontSize: 16,
-    fontWeight: '500',
-    color: '#1F2937',
+  studentName: {
+    fontSize: 14,
+    color: '#374151',
   },
-  instructorContact: {
+  studentContact: {
     fontSize: 14,
     color: '#6B7280',
   },
-  removeButton: {
-    padding: 8,
+  studentActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  removeStudentButton: {
+    backgroundColor: '#FEF2F2',
+    padding: 6,
+    borderRadius: 6,
   },
   attendanceStatus: {
     fontSize: 14,
@@ -442,35 +796,109 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '500',
   },
-  enrolledStudents: {
-    marginTop: 16,
-    paddingTop: 16,
-    borderTopWidth: 1,
-    borderTopColor: '#E5E7EB',
+  modalOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 16,
   },
-  enrolledStudentsTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#1F2937',
-    marginBottom: 8,
+  modalContainer: {
+    backgroundColor: 'white',
+    borderRadius: 12,
+    width: '100%',
+    maxWidth: 500,
+    maxHeight: '90%',
   },
-  studentRow: {
+  modalHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: 8,
+    padding: 24,
+    borderBottomWidth: 1,
+    borderBottomColor: '#E5E7EB',
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#1F2937',
+  },
+  modalScrollView: {
+    maxHeight: 400,
+  },
+  modalBody: {
+    padding: 24,
+    gap: 16,
+  },
+  formField: {
+    gap: 8,
+  },
+  label: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: '#4B5563',
+  },
+  input: {
+    backgroundColor: '#F9FAFB',
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    borderRadius: 8,
+    padding: 12,
+    fontSize: 14,
+    color: '#1F2937',
+  },
+  submitButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#4F46E5',
+    padding: 12,
+    borderRadius: 8,
+    marginTop: 8,
+    gap: 8,
+  },
+  submitButtonText: {
+    color: 'white',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  sectionTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#1F2937',
+    marginBottom: 12,
+  },
+  availableStudentRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 12,
     borderBottomWidth: 1,
     borderBottomColor: '#F3F4F6',
   },
-  studentInfo: {
-    flex: 1,
+  assignButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#10B981',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 6,
+    gap: 4,
   },
-  studentName: {
-    fontSize: 14,
-    color: '#374151',
+  assignButtonText: {
+    color: 'white',
+    fontSize: 12,
+    fontWeight: '500',
   },
-  studentContact: {
+  noStudentsText: {
     fontSize: 14,
     color: '#6B7280',
+    textAlign: 'center',
+    fontStyle: 'italic',
+    marginTop: 20,
   },
 });
