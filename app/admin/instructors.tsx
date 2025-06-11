@@ -1,63 +1,96 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Platform } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Platform, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Plus, Phone, Mail, Award, X } from 'lucide-react-native';
-
-const instructors = [
-  {
-    id: 1,
-    name: 'Ayşe Yılmaz',
-    email: 'ayse@studio.com',
-    phone: '0532 123 4567',
-    specialties: ['Pilates', 'Yoga'],
-    rating: 4.8,
-    totalClasses: 245
-  },
-  {
-    id: 2,
-    name: 'Mehmet Demir',
-    email: 'mehmet@studio.com',
-    phone: '0533 987 6543',
-    specialties: ['Yoga', 'Meditasyon'],
-    rating: 4.6,
-    totalClasses: 189
-  }
-];
+import { Plus, Phone, Mail, Award, X, Edit, Trash } from 'lucide-react-native';
+import { useData } from '../context/DataContext';
 
 export default function InstructorsScreen() {
+  const { instructors, addInstructor, updateInstructor, deleteInstructor } = useData();
   const [showForm, setShowForm] = useState(false);
+  const [editingInstructor, setEditingInstructor] = useState(null);
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     phone: '',
-    specialties: ''
+    specialties: '',
+    rating: ''
   });
-  const [instructorsList, setInstructorsList] = useState(instructors);
 
-  const handleSubmit = () => {
-    if (!formData.name || !formData.email || !formData.phone || !formData.specialties) {
-      alert('Lütfen tüm alanları doldurun.');
-      return;
-    }
-
-    const newInstructor = {
-      id: instructorsList.length + 1,
-      name: formData.name,
-      email: formData.email,
-      phone: formData.phone,
-      specialties: formData.specialties.split(',').map(s => s.trim()),
-      rating: 0,
-      totalClasses: 0
-    };
-
-    setInstructorsList([...instructorsList, newInstructor]);
-    setShowForm(false);
+  const resetForm = () => {
     setFormData({
       name: '',
       email: '',
       phone: '',
-      specialties: ''
+      specialties: '',
+      rating: ''
     });
+    setEditingInstructor(null);
+    setShowForm(false);
+  };
+
+  const handleEdit = (instructor) => {
+    setEditingInstructor(instructor);
+    setFormData({
+      name: instructor.name,
+      email: instructor.email,
+      phone: instructor.phone,
+      specialties: instructor.specialties.join(', '),
+      rating: instructor.rating.toString()
+    });
+    setShowForm(true);
+  };
+
+  const handleDelete = (instructor) => {
+    Alert.alert(
+      'Eğitmen Sil',
+      `${instructor.name} eğitmenini silmek istediğinizden emin misiniz?`,
+      [
+        { text: 'İptal', style: 'cancel' },
+        {
+          text: 'Sil',
+          style: 'destructive',
+          onPress: () => {
+            deleteInstructor(instructor.id);
+            Alert.alert('Başarılı', 'Eğitmen silindi!');
+          }
+        }
+      ]
+    );
+  };
+
+  const handleSubmit = () => {
+    if (!formData.name || !formData.email || !formData.phone || !formData.specialties) {
+      Alert.alert('Hata', 'Lütfen tüm alanları doldurun.');
+      return;
+    }
+
+    try {
+      const instructorData = {
+        name: formData.name,
+        email: formData.email,
+        phone: formData.phone,
+        specialties: formData.specialties.split(',').map(s => s.trim()),
+        rating: parseFloat(formData.rating) || 0,
+        totalClasses: editingInstructor?.totalClasses || 0,
+        metrics: editingInstructor?.metrics || {
+          weekly: { classes: 0, attendance: 0, revenue: 0, studentSatisfaction: 0 },
+          monthly: { classes: 0, attendance: 0, revenue: 0, studentSatisfaction: 0 }
+        },
+        students: editingInstructor?.students || []
+      };
+
+      if (editingInstructor) {
+        updateInstructor(editingInstructor.id, instructorData);
+        Alert.alert('Başarılı', 'Eğitmen güncellendi!');
+      } else {
+        addInstructor(instructorData);
+        Alert.alert('Başarılı', 'Yeni eğitmen eklendi!');
+      }
+
+      resetForm();
+    } catch (error) {
+      Alert.alert('Hata', 'İşlem sırasında bir hata oluştu.');
+    }
   };
 
   return (
@@ -75,10 +108,10 @@ export default function InstructorsScreen() {
         </View>
 
         <View style={styles.instructorList}>
-          {instructorsList.map((instructor) => (
+          {instructors.map((instructor) => (
             <View key={instructor.id} style={styles.instructorCard}>
               <View style={styles.cardHeader}>
-                <View>
+                <View style={styles.instructorInfo}>
                   <Text style={styles.instructorName}>{instructor.name}</Text>
                   <View style={styles.specialties}>
                     {instructor.specialties.map((specialty, index) => (
@@ -88,9 +121,25 @@ export default function InstructorsScreen() {
                     ))}
                   </View>
                 </View>
-                <View style={styles.ratingContainer}>
-                  <Award size={16} color="#F59E0B" />
-                  <Text style={styles.rating}>{instructor.rating}</Text>
+                <View style={styles.cardActions}>
+                  <View style={styles.ratingContainer}>
+                    <Award size={16} color="#F59E0B" />
+                    <Text style={styles.rating}>{instructor.rating}</Text>
+                  </View>
+                  <View style={styles.actionButtons}>
+                    <TouchableOpacity
+                      style={styles.editButton}
+                      onPress={() => handleEdit(instructor)}
+                    >
+                      <Edit size={16} color="#3B82F6" />
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      style={styles.deleteButton}
+                      onPress={() => handleDelete(instructor)}
+                    >
+                      <Trash size={16} color="#EF4444" />
+                    </TouchableOpacity>
+                  </View>
                 </View>
               </View>
 
@@ -119,61 +168,78 @@ export default function InstructorsScreen() {
         <View style={styles.formOverlay}>
           <View style={styles.formContainer}>
             <View style={styles.formHeader}>
-              <Text style={styles.formTitle}>Yeni Eğitmen Ekle</Text>
-              <TouchableOpacity onPress={() => setShowForm(false)}>
+              <Text style={styles.formTitle}>
+                {editingInstructor ? 'Eğitmen Düzenle' : 'Yeni Eğitmen Ekle'}
+              </Text>
+              <TouchableOpacity onPress={resetForm}>
                 <X size={24} color="#4B5563" />
               </TouchableOpacity>
             </View>
 
-            <View style={styles.formBody}>
-              <View style={styles.formField}>
-                <Text style={styles.label}>Ad Soyad</Text>
-                <TextInput
-                  style={styles.input}
-                  value={formData.name}
-                  onChangeText={(text) => setFormData({ ...formData, name: text })}
-                  placeholder="Ad Soyad giriniz"
-                />
-              </View>
+            <ScrollView style={styles.formScrollView}>
+              <View style={styles.formBody}>
+                <View style={styles.formField}>
+                  <Text style={styles.label}>Ad Soyad</Text>
+                  <TextInput
+                    style={styles.input}
+                    value={formData.name}
+                    onChangeText={(text) => setFormData({ ...formData, name: text })}
+                    placeholder="Ad Soyad giriniz"
+                  />
+                </View>
 
-              <View style={styles.formField}>
-                <Text style={styles.label}>E-posta</Text>
-                <TextInput
-                  style={styles.input}
-                  value={formData.email}
-                  onChangeText={(text) => setFormData({ ...formData, email: text })}
-                  placeholder="E-posta giriniz"
-                  keyboardType="email-address"
-                  autoCapitalize="none"
-                />
-              </View>
+                <View style={styles.formField}>
+                  <Text style={styles.label}>E-posta</Text>
+                  <TextInput
+                    style={styles.input}
+                    value={formData.email}
+                    onChangeText={(text) => setFormData({ ...formData, email: text })}
+                    placeholder="E-posta giriniz"
+                    keyboardType="email-address"
+                    autoCapitalize="none"
+                  />
+                </View>
 
-              <View style={styles.formField}>
-                <Text style={styles.label}>Telefon</Text>
-                <TextInput
-                  style={styles.input}
-                  value={formData.phone}
-                  onChangeText={(text) => setFormData({ ...formData, phone: text })}
-                  placeholder="Telefon giriniz"
-                  keyboardType="phone-pad"
-                />
-              </View>
+                <View style={styles.formField}>
+                  <Text style={styles.label}>Telefon</Text>
+                  <TextInput
+                    style={styles.input}
+                    value={formData.phone}
+                    onChangeText={(text) => setFormData({ ...formData, phone: text })}
+                    placeholder="Telefon giriniz"
+                    keyboardType="phone-pad"
+                  />
+                </View>
 
-              <View style={styles.formField}>
-                <Text style={styles.label}>Uzmanlık Alanları</Text>
-                <TextInput
-                  style={styles.input}
-                  value={formData.specialties}
-                  onChangeText={(text) => setFormData({ ...formData, specialties: text })}
-                  placeholder="Uzmanlık alanlarını virgülle ayırarak giriniz"
-                />
-                <Text style={styles.helperText}>Örnek: Pilates, Yoga, Meditasyon</Text>
-              </View>
+                <View style={styles.formField}>
+                  <Text style={styles.label}>Uzmanlık Alanları</Text>
+                  <TextInput
+                    style={styles.input}
+                    value={formData.specialties}
+                    onChangeText={(text) => setFormData({ ...formData, specialties: text })}
+                    placeholder="Uzmanlık alanlarını virgülle ayırarak giriniz"
+                  />
+                  <Text style={styles.helperText}>Örnek: Pilates, Yoga, Meditasyon</Text>
+                </View>
 
-              <TouchableOpacity style={styles.submitButton} onPress={handleSubmit}>
-                <Text style={styles.submitButtonText}>Kaydet</Text>
-              </TouchableOpacity>
-            </View>
+                <View style={styles.formField}>
+                  <Text style={styles.label}>Değerlendirme</Text>
+                  <TextInput
+                    style={styles.input}
+                    value={formData.rating}
+                    onChangeText={(text) => setFormData({ ...formData, rating: text })}
+                    placeholder="4.8"
+                    keyboardType="decimal-pad"
+                  />
+                </View>
+
+                <TouchableOpacity style={styles.submitButton} onPress={handleSubmit}>
+                  <Text style={styles.submitButtonText}>
+                    {editingInstructor ? 'Güncelle' : 'Kaydet'}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            </ScrollView>
           </View>
         </View>
       )}
@@ -246,6 +312,9 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
     marginBottom: 16,
   },
+  instructorInfo: {
+    flex: 1,
+  },
   instructorName: {
     fontSize: 18,
     fontWeight: '600',
@@ -268,6 +337,10 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '500',
   },
+  cardActions: {
+    alignItems: 'flex-end',
+    gap: 8,
+  },
   ratingContainer: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -277,6 +350,20 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     color: '#F59E0B',
+  },
+  actionButtons: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  editButton: {
+    padding: 8,
+    backgroundColor: '#EFF6FF',
+    borderRadius: 8,
+  },
+  deleteButton: {
+    padding: 8,
+    backgroundColor: '#FEF2F2',
+    borderRadius: 8,
   },
   contactInfo: {
     gap: 8,
@@ -317,20 +404,26 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     width: '100%',
     maxWidth: 500,
-    padding: 24,
+    maxHeight: '90%',
   },
   formHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 24,
+    padding: 24,
+    borderBottomWidth: 1,
+    borderBottomColor: '#E5E7EB',
   },
   formTitle: {
     fontSize: 18,
     fontWeight: 'bold',
     color: '#1F2937',
   },
+  formScrollView: {
+    maxHeight: 400,
+  },
   formBody: {
+    padding: 24,
     gap: 16,
   },
   formField: {

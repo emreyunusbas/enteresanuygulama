@@ -1,50 +1,99 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Platform } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Platform, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Plus, Phone, Mail, Calendar, CheckCircle, X } from 'lucide-react-native';
-
-const students = [
-  {
-    id: 1,
-    name: 'Zeynep Kaya',
-    email: 'zeynep@email.com',
-    phone: '0534 555 1234',
-    startDate: '2025-01-15',
-    totalClasses: 48,
-    attendedClasses: 45,
-    activePackage: 'Aylık Sınırsız'
-  },
-  {
-    id: 2,
-    name: 'Ali Özkan',
-    email: 'ali@email.com',
-    phone: '0535 444 5678',
-    startDate: '2025-02-01',
-    totalClasses: 24,
-    attendedClasses: 20,
-    activePackage: '10 Ders Paketi'
-  }
-];
+import { Plus, Phone, Mail, Calendar, CheckCircle, X, Edit, Trash } from 'lucide-react-native';
+import { useData } from '../context/DataContext';
 
 export default function StudentsScreen() {
+  const { students, addStudent, updateStudent, deleteStudent } = useData();
   const [showForm, setShowForm] = useState(false);
+  const [editingStudent, setEditingStudent] = useState(null);
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     phone: '',
-    package: ''
+    package: '',
+    startDate: ''
   });
 
-  const handleSubmit = () => {
-    // Handle form submission
-    console.log('Form submitted:', formData);
-    setShowForm(false);
+  const resetForm = () => {
     setFormData({
       name: '',
       email: '',
       phone: '',
-      package: ''
+      package: '',
+      startDate: ''
     });
+    setEditingStudent(null);
+    setShowForm(false);
+  };
+
+  const handleEdit = (student) => {
+    setEditingStudent(student);
+    setFormData({
+      name: student.name,
+      email: student.email,
+      phone: student.phone,
+      package: student.activePackage,
+      startDate: student.startDate
+    });
+    setShowForm(true);
+  };
+
+  const handleDelete = (student) => {
+    Alert.alert(
+      'Öğrenci Sil',
+      `${student.name} öğrencisini silmek istediğinizden emin misiniz?`,
+      [
+        { text: 'İptal', style: 'cancel' },
+        {
+          text: 'Sil',
+          style: 'destructive',
+          onPress: () => {
+            deleteStudent(student.id);
+            Alert.alert('Başarılı', 'Öğrenci silindi!');
+          }
+        }
+      ]
+    );
+  };
+
+  const handleSubmit = () => {
+    if (!formData.name || !formData.email || !formData.phone || !formData.package) {
+      Alert.alert('Hata', 'Lütfen tüm alanları doldurun.');
+      return;
+    }
+
+    try {
+      const studentData = {
+        name: formData.name,
+        email: formData.email,
+        phone: formData.phone,
+        activePackage: formData.package,
+        startDate: formData.startDate || new Date().toISOString().split('T')[0],
+        totalClasses: editingStudent?.totalClasses || 0,
+        attendedClasses: editingStudent?.attendedClasses || 0,
+        classHistory: editingStudent?.classHistory || [],
+        payments: editingStudent?.payments || [],
+        classOccupancy: editingStudent?.classOccupancy || [
+          { name: 'Temel Pilates', rate: 80 },
+          { name: 'İleri Pilates', rate: 75 },
+          { name: 'Yoga', rate: 85 }
+        ]
+      };
+
+      if (editingStudent) {
+        updateStudent(editingStudent.id, studentData);
+        Alert.alert('Başarılı', 'Öğrenci güncellendi!');
+      } else {
+        addStudent(studentData);
+        Alert.alert('Başarılı', 'Yeni öğrenci eklendi!');
+      }
+
+      resetForm();
+    } catch (error) {
+      Alert.alert('Hata', 'İşlem sırasında bir hata oluştu.');
+    }
   };
 
   const formatDate = (dateString: string) => {
@@ -73,17 +122,33 @@ export default function StudentsScreen() {
           {students.map((student) => (
             <View key={student.id} style={styles.studentCard}>
               <View style={styles.cardHeader}>
-                <View>
+                <View style={styles.studentInfo}>
                   <Text style={styles.studentName}>{student.name}</Text>
                   <View style={styles.packageBadge}>
                     <Text style={styles.packageText}>{student.activePackage}</Text>
                   </View>
                 </View>
-                <View style={styles.attendanceContainer}>
-                  <CheckCircle size={16} color="#059669" />
-                  <Text style={styles.attendanceText}>
-                    {student.attendedClasses}/{student.totalClasses} Ders
-                  </Text>
+                <View style={styles.cardActions}>
+                  <View style={styles.attendanceContainer}>
+                    <CheckCircle size={16} color="#059669" />
+                    <Text style={styles.attendanceText}>
+                      {student.attendedClasses}/{student.totalClasses} Ders
+                    </Text>
+                  </View>
+                  <View style={styles.actionButtons}>
+                    <TouchableOpacity
+                      style={styles.editButton}
+                      onPress={() => handleEdit(student)}
+                    >
+                      <Edit size={16} color="#3B82F6" />
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      style={styles.deleteButton}
+                      onPress={() => handleDelete(student)}
+                    >
+                      <Trash size={16} color="#EF4444" />
+                    </TouchableOpacity>
+                  </View>
                 </View>
               </View>
 
@@ -106,7 +171,7 @@ export default function StudentsScreen() {
 
               <View style={styles.statsContainer}>
                 <Text style={styles.statsText}>
-                  Katılım Oranı: %{((student.attendedClasses / student.totalClasses) * 100).toFixed(0)}
+                  Katılım Oranı: %{student.totalClasses > 0 ? ((student.attendedClasses / student.totalClasses) * 100).toFixed(0) : 0}
                 </Text>
               </View>
             </View>
@@ -118,59 +183,76 @@ export default function StudentsScreen() {
         <View style={styles.formOverlay}>
           <View style={styles.formContainer}>
             <View style={styles.formHeader}>
-              <Text style={styles.formTitle}>Yeni Öğrenci Ekle</Text>
-              <TouchableOpacity onPress={() => setShowForm(false)}>
+              <Text style={styles.formTitle}>
+                {editingStudent ? 'Öğrenci Düzenle' : 'Yeni Öğrenci Ekle'}
+              </Text>
+              <TouchableOpacity onPress={resetForm}>
                 <X size={24} color="#4B5563" />
               </TouchableOpacity>
             </View>
 
-            <View style={styles.formBody}>
-              <View style={styles.formField}>
-                <Text style={styles.label}>Ad Soyad</Text>
-                <TextInput
-                  style={styles.input}
-                  value={formData.name}
-                  onChangeText={(text) => setFormData({ ...formData, name: text })}
-                  placeholder="Ad Soyad giriniz"
-                />
-              </View>
+            <ScrollView style={styles.formScrollView}>
+              <View style={styles.formBody}>
+                <View style={styles.formField}>
+                  <Text style={styles.label}>Ad Soyad</Text>
+                  <TextInput
+                    style={styles.input}
+                    value={formData.name}
+                    onChangeText={(text) => setFormData({ ...formData, name: text })}
+                    placeholder="Ad Soyad giriniz"
+                  />
+                </View>
 
-              <View style={styles.formField}>
-                <Text style={styles.label}>E-posta</Text>
-                <TextInput
-                  style={styles.input}
-                  value={formData.email}
-                  onChangeText={(text) => setFormData({ ...formData, email: text })}
-                  placeholder="E-posta giriniz"
-                  keyboardType="email-address"
-                />
-              </View>
+                <View style={styles.formField}>
+                  <Text style={styles.label}>E-posta</Text>
+                  <TextInput
+                    style={styles.input}
+                    value={formData.email}
+                    onChangeText={(text) => setFormData({ ...formData, email: text })}
+                    placeholder="E-posta giriniz"
+                    keyboardType="email-address"
+                    autoCapitalize="none"
+                  />
+                </View>
 
-              <View style={styles.formField}>
-                <Text style={styles.label}>Telefon</Text>
-                <TextInput
-                  style={styles.input}
-                  value={formData.phone}
-                  onChangeText={(text) => setFormData({ ...formData, phone: text })}
-                  placeholder="Telefon giriniz"
-                  keyboardType="phone-pad"
-                />
-              </View>
+                <View style={styles.formField}>
+                  <Text style={styles.label}>Telefon</Text>
+                  <TextInput
+                    style={styles.input}
+                    value={formData.phone}
+                    onChangeText={(text) => setFormData({ ...formData, phone: text })}
+                    placeholder="Telefon giriniz"
+                    keyboardType="phone-pad"
+                  />
+                </View>
 
-              <View style={styles.formField}>
-                <Text style={styles.label}>Paket Seçimi</Text>
-                <TextInput
-                  style={styles.input}
-                  value={formData.package}
-                  onChangeText={(text) => setFormData({ ...formData, package: text })}
-                  placeholder="Paket seçiniz"
-                />
-              </View>
+                <View style={styles.formField}>
+                  <Text style={styles.label}>Paket Seçimi</Text>
+                  <TextInput
+                    style={styles.input}
+                    value={formData.package}
+                    onChangeText={(text) => setFormData({ ...formData, package: text })}
+                    placeholder="Paket seçiniz"
+                  />
+                </View>
 
-              <TouchableOpacity style={styles.submitButton} onPress={handleSubmit}>
-                <Text style={styles.submitButtonText}>Kaydet</Text>
-              </TouchableOpacity>
-            </View>
+                <View style={styles.formField}>
+                  <Text style={styles.label}>Başlangıç Tarihi</Text>
+                  <TextInput
+                    style={styles.input}
+                    value={formData.startDate}
+                    onChangeText={(text) => setFormData({ ...formData, startDate: text })}
+                    placeholder="YYYY-MM-DD"
+                  />
+                </View>
+
+                <TouchableOpacity style={styles.submitButton} onPress={handleSubmit}>
+                  <Text style={styles.submitButtonText}>
+                    {editingStudent ? 'Güncelle' : 'Kaydet'}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            </ScrollView>
           </View>
         </View>
       )}
@@ -243,6 +325,9 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
     marginBottom: 16,
   },
+  studentInfo: {
+    flex: 1,
+  },
   studentName: {
     fontSize: 18,
     fontWeight: '600',
@@ -254,11 +339,16 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 12,
+    alignSelf: 'flex-start',
   },
   packageText: {
     color: '#059669',
     fontSize: 12,
     fontWeight: '500',
+  },
+  cardActions: {
+    alignItems: 'flex-end',
+    gap: 8,
   },
   attendanceContainer: {
     flexDirection: 'row',
@@ -269,6 +359,20 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '500',
     color: '#059669',
+  },
+  actionButtons: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  editButton: {
+    padding: 8,
+    backgroundColor: '#EFF6FF',
+    borderRadius: 8,
+  },
+  deleteButton: {
+    padding: 8,
+    backgroundColor: '#FEF2F2',
+    borderRadius: 8,
   },
   contactInfo: {
     gap: 8,
@@ -309,20 +413,26 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     width: '100%',
     maxWidth: 500,
-    padding: 24,
+    maxHeight: '90%',
   },
   formHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 24,
+    padding: 24,
+    borderBottomWidth: 1,
+    borderBottomColor: '#E5E7EB',
   },
   formTitle: {
     fontSize: 18,
     fontWeight: 'bold',
     color: '#1F2937',
   },
+  formScrollView: {
+    maxHeight: 400,
+  },
   formBody: {
+    padding: 24,
     gap: 16,
   },
   formField: {

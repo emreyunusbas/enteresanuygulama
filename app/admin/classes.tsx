@@ -1,54 +1,99 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Platform } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Platform, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Plus, Users, Clock, Calendar, User, X } from 'lucide-react-native';
-
-const classes = [
-  {
-    id: 1,
-    name: 'Pilates Temel',
-    instructor: 'Ayşe Yılmaz',
-    time: '09:00',
-    date: '2025-05-26',
-    capacity: 5,
-    enrolled: 4,
-    price: 150
-  },
-  {
-    id: 2,
-    name: 'Yoga Flow',
-    instructor: 'Mehmet Demir',
-    time: '10:30',
-    date: '2025-05-26',
-    capacity: 5,
-    enrolled: 5,
-    price: 120
-  }
-];
+import { Plus, Users, Clock, Calendar, User, X, Edit, Trash } from 'lucide-react-native';
+import { useData } from '../context/DataContext';
 
 export default function ClassesScreen() {
+  const { classes, addClass, updateClass, deleteClass } = useData();
   const [showForm, setShowForm] = useState(false);
+  const [editingClass, setEditingClass] = useState(null);
   const [formData, setFormData] = useState({
     name: '',
     instructor: '',
     time: '',
     date: '',
     capacity: '',
-    price: ''
+    price: '',
+    enrolled: ''
   });
 
-  const handleSubmit = () => {
-    // Handle form submission
-    console.log('Form submitted:', formData);
-    setShowForm(false);
+  const resetForm = () => {
     setFormData({
       name: '',
       instructor: '',
       time: '',
       date: '',
       capacity: '',
-      price: ''
+      price: '',
+      enrolled: ''
     });
+    setEditingClass(null);
+    setShowForm(false);
+  };
+
+  const handleEdit = (cls) => {
+    setEditingClass(cls);
+    setFormData({
+      name: cls.name,
+      instructor: cls.instructor,
+      time: cls.time,
+      date: cls.date,
+      capacity: cls.capacity.toString(),
+      price: cls.price.toString(),
+      enrolled: cls.enrolled.toString()
+    });
+    setShowForm(true);
+  };
+
+  const handleDelete = (cls) => {
+    Alert.alert(
+      'Ders Sil',
+      `${cls.name} dersini silmek istediğinizden emin misiniz?`,
+      [
+        { text: 'İptal', style: 'cancel' },
+        {
+          text: 'Sil',
+          style: 'destructive',
+          onPress: () => {
+            deleteClass(cls.id);
+            Alert.alert('Başarılı', 'Ders silindi!');
+          }
+        }
+      ]
+    );
+  };
+
+  const handleSubmit = () => {
+    if (!formData.name || !formData.instructor || !formData.time || !formData.date || !formData.capacity || !formData.price) {
+      Alert.alert('Hata', 'Lütfen tüm alanları doldurun.');
+      return;
+    }
+
+    try {
+      const classData = {
+        name: formData.name,
+        instructor: formData.instructor,
+        time: formData.time,
+        date: formData.date,
+        capacity: parseInt(formData.capacity) || 0,
+        enrolled: parseInt(formData.enrolled) || 0,
+        price: parseInt(formData.price) || 0,
+        studentsAssigned: editingClass?.studentsAssigned || []
+      };
+
+      if (editingClass) {
+        updateClass(editingClass.id, classData);
+        Alert.alert('Başarılı', 'Ders güncellendi!');
+      } else {
+        addClass(classData);
+        Alert.alert('Başarılı', 'Yeni ders eklendi!');
+      }
+
+      resetForm();
+    } catch (error) {
+      Alert.alert('Hata', 'İşlem sırasında bir hata oluştu.');
+    }
   };
 
   const formatDate = (dateString: string) => {
@@ -78,8 +123,24 @@ export default function ClassesScreen() {
             <View key={cls.id} style={styles.classCard}>
               <View style={styles.cardHeader}>
                 <Text style={styles.className}>{cls.name}</Text>
-                <View style={styles.priceBadge}>
-                  <Text style={styles.priceText}>₺{cls.price}</Text>
+                <View style={styles.cardActions}>
+                  <View style={styles.priceBadge}>
+                    <Text style={styles.priceText}>₺{cls.price}</Text>
+                  </View>
+                  <View style={styles.actionButtons}>
+                    <TouchableOpacity
+                      style={styles.editButton}
+                      onPress={() => handleEdit(cls)}
+                    >
+                      <Edit size={16} color="#3B82F6" />
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      style={styles.deleteButton}
+                      onPress={() => handleDelete(cls)}
+                    >
+                      <Trash size={16} color="#EF4444" />
+                    </TouchableOpacity>
+                  </View>
                 </View>
               </View>
 
@@ -110,12 +171,12 @@ export default function ClassesScreen() {
                   <View 
                     style={[
                       styles.progressFill,
-                      { width: `${(cls.enrolled / cls.capacity) * 100}%` }
+                      { width: `${cls.capacity > 0 ? (cls.enrolled / cls.capacity) * 100 : 0}%` }
                     ]}
                   />
                 </View>
                 <Text style={styles.progressText}>
-                  Doluluk: %{Math.round((cls.enrolled / cls.capacity) * 100)}
+                  Doluluk: %{cls.capacity > 0 ? Math.round((cls.enrolled / cls.capacity) * 100) : 0}
                 </Text>
               </View>
             </View>
@@ -127,79 +188,96 @@ export default function ClassesScreen() {
         <View style={styles.formOverlay}>
           <View style={styles.formContainer}>
             <View style={styles.formHeader}>
-              <Text style={styles.formTitle}>Yeni Ders Ekle</Text>
-              <TouchableOpacity onPress={() => setShowForm(false)}>
+              <Text style={styles.formTitle}>
+                {editingClass ? 'Ders Düzenle' : 'Yeni Ders Ekle'}
+              </Text>
+              <TouchableOpacity onPress={resetForm}>
                 <X size={24} color="#4B5563" />
               </TouchableOpacity>
             </View>
 
-            <View style={styles.formBody}>
-              <View style={styles.formField}>
-                <Text style={styles.label}>Ders Adı</Text>
-                <TextInput
-                  style={styles.input}
-                  value={formData.name}
-                  onChangeText={(text) => setFormData({ ...formData, name: text })}
-                  placeholder="Ders adı giriniz"
-                />
-              </View>
+            <ScrollView style={styles.formScrollView}>
+              <View style={styles.formBody}>
+                <View style={styles.formField}>
+                  <Text style={styles.label}>Ders Adı</Text>
+                  <TextInput
+                    style={styles.input}
+                    value={formData.name}
+                    onChangeText={(text) => setFormData({ ...formData, name: text })}
+                    placeholder="Ders adı giriniz"
+                  />
+                </View>
 
-              <View style={styles.formField}>
-                <Text style={styles.label}>Eğitmen</Text>
-                <TextInput
-                  style={styles.input}
-                  value={formData.instructor}
-                  onChangeText={(text) => setFormData({ ...formData, instructor: text })}
-                  placeholder="Eğitmen seçiniz"
-                />
-              </View>
+                <View style={styles.formField}>
+                  <Text style={styles.label}>Eğitmen</Text>
+                  <TextInput
+                    style={styles.input}
+                    value={formData.instructor}
+                    onChangeText={(text) => setFormData({ ...formData, instructor: text })}
+                    placeholder="Eğitmen seçiniz"
+                  />
+                </View>
 
-              <View style={styles.formField}>
-                <Text style={styles.label}>Tarih</Text>
-                <TextInput
-                  style={styles.input}
-                  value={formData.date}
-                  onChangeText={(text) => setFormData({ ...formData, date: text })}
-                  placeholder="Tarih seçiniz"
-                />
-              </View>
+                <View style={styles.formField}>
+                  <Text style={styles.label}>Tarih</Text>
+                  <TextInput
+                    style={styles.input}
+                    value={formData.date}
+                    onChangeText={(text) => setFormData({ ...formData, date: text })}
+                    placeholder="YYYY-MM-DD"
+                  />
+                </View>
 
-              <View style={styles.formField}>
-                <Text style={styles.label}>Saat</Text>
-                <TextInput
-                  style={styles.input}
-                  value={formData.time}
-                  onChangeText={(text) => setFormData({ ...formData, time: text })}
-                  placeholder="Saat seçiniz"
-                />
-              </View>
+                <View style={styles.formField}>
+                  <Text style={styles.label}>Saat</Text>
+                  <TextInput
+                    style={styles.input}
+                    value={formData.time}
+                    onChangeText={(text) => setFormData({ ...formData, time: text })}
+                    placeholder="09:00"
+                  />
+                </View>
 
-              <View style={styles.formField}>
-                <Text style={styles.label}>Kapasite</Text>
-                <TextInput
-                  style={styles.input}
-                  value={formData.capacity}
-                  onChangeText={(text) => setFormData({ ...formData, capacity: text })}
-                  placeholder="Kapasite giriniz"
-                  keyboardType="numeric"
-                />
-              </View>
+                <View style={styles.formField}>
+                  <Text style={styles.label}>Kapasite</Text>
+                  <TextInput
+                    style={styles.input}
+                    value={formData.capacity}
+                    onChangeText={(text) => setFormData({ ...formData, capacity: text })}
+                    placeholder="Kapasite giriniz"
+                    keyboardType="numeric"
+                  />
+                </View>
 
-              <View style={styles.formField}>
-                <Text style={styles.label}>Ücret</Text>
-                <TextInput
-                  style={styles.input}
-                  value={formData.price}
-                  onChangeText={(text) => setFormData({ ...formData, price: text })}
-                  placeholder="Ücret giriniz"
-                  keyboardType="numeric"
-                />
-              </View>
+                <View style={styles.formField}>
+                  <Text style={styles.label}>Kayıtlı Öğrenci Sayısı</Text>
+                  <TextInput
+                    style={styles.input}
+                    value={formData.enrolled}
+                    onChangeText={(text) => setFormData({ ...formData, enrolled: text })}
+                    placeholder="Kayıtlı öğrenci sayısı"
+                    keyboardType="numeric"
+                  />
+                </View>
 
-              <TouchableOpacity style={styles.submitButton} onPress={handleSubmit}>
-                <Text style={styles.submitButtonText}>Kaydet</Text>
-              </TouchableOpacity>
-            </View>
+                <View style={styles.formField}>
+                  <Text style={styles.label}>Ücret</Text>
+                  <TextInput
+                    style={styles.input}
+                    value={formData.price}
+                    onChangeText={(text) => setFormData({ ...formData, price: text })}
+                    placeholder="Ücret giriniz"
+                    keyboardType="numeric"
+                  />
+                </View>
+
+                <TouchableOpacity style={styles.submitButton} onPress={handleSubmit}>
+                  <Text style={styles.submitButtonText}>
+                    {editingClass ? 'Güncelle' : 'Kaydet'}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            </ScrollView>
           </View>
         </View>
       )}
@@ -276,6 +354,12 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '600',
     color: '#1F2937',
+    flex: 1,
+  },
+  cardActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
   },
   priceBadge: {
     backgroundColor: '#DBEAFE',
@@ -287,6 +371,20 @@ const styles = StyleSheet.create({
     color: '#1D4ED8',
     fontSize: 14,
     fontWeight: '500',
+  },
+  actionButtons: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  editButton: {
+    padding: 8,
+    backgroundColor: '#EFF6FF',
+    borderRadius: 8,
+  },
+  deleteButton: {
+    padding: 8,
+    backgroundColor: '#FEF2F2',
+    borderRadius: 8,
   },
   classDetails: {
     gap: 8,
@@ -339,20 +437,26 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     width: '100%',
     maxWidth: 500,
-    padding: 24,
+    maxHeight: '90%',
   },
   formHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 24,
+    padding: 24,
+    borderBottomWidth: 1,
+    borderBottomColor: '#E5E7EB',
   },
   formTitle: {
     fontSize: 18,
     fontWeight: 'bold',
     color: '#1F2937',
   },
+  formScrollView: {
+    maxHeight: 400,
+  },
   formBody: {
+    padding: 24,
     gap: 16,
   },
   formField: {

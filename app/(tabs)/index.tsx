@@ -1,8 +1,9 @@
-import React, { useContext } from 'react';
+import React, { useContext, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Activity, Users, Calendar, TrendingUp, BarChart3, Clock, CreditCard, Wallet, Banknote as BanknoteIcon } from 'lucide-react-native';
 import { UserContext } from '../context/UserContext';
+import { useRouter } from 'expo-router';
 
 const users = [
   { id: 1, name: 'Ayşe Yılmaz', role: 'instructor', email: 'ayse@studio.com', phone: '0532 123 4567' },
@@ -106,6 +107,14 @@ const PaymentMethodIcon = ({ type }: { type: 'creditCard' | 'bankTransfer' | 'ca
 
 export default function HomeScreen() {
   const { currentUser, setCurrentUser } = useContext(UserContext);
+  const router = useRouter();
+
+  // Admin kullanıcısını otomatik olarak admin paneline yönlendir
+  useEffect(() => {
+    if (currentUser?.role === 'admin') {
+      router.replace('/admin');
+    }
+  }, [currentUser, router]);
 
   const AdminDashboard = () => (
     <>
@@ -315,6 +324,11 @@ export default function HomeScreen() {
     );
   }
 
+  // Admin kullanıcısı için bu sayfa gösterilmez, admin paneline yönlendirilir
+  if (currentUser.role === 'admin') {
+    return null;
+  }
+
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView style={styles.scrollView}>
@@ -331,7 +345,6 @@ export default function HomeScreen() {
           </TouchableOpacity>
         </View>
 
-        {currentUser.role === 'admin' && <AdminDashboard />}
         {currentUser.role === 'instructor' && (
           <View style={styles.section}>
             <View style={styles.sectionHeader}>

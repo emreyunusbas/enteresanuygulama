@@ -13,48 +13,39 @@ function CustomDrawerContent() {
     navigation.dispatch(DrawerActions.closeDrawer());
   };
 
+  const navigateToRoute = (route: string) => {
+    navigation.navigate(route as never);
+    closeDrawer();
+  };
+
   const menuItems = [
     {
       title: 'Veri Yönetimi',
       description: 'Öğrenci, eğitmen ve ders bilgilerini yönetin',
       icon: Database,
-      route: '/admin/data-management',
+      route: 'data-management',
       color: '#EC4899'
     },
     {
       title: 'Eğitmenler',
       description: 'Eğitmen yönetimi ve performans takibi',
       icon: Users,
-      route: '/admin/instructors',
+      route: 'instructors',
       color: '#3B82F6'
     },
     {
       title: 'Öğrenciler',
       description: 'Öğrenci kayıtları ve katılım takibi',
       icon: BookOpen,
-      route: '/admin/students',
+      route: 'students',
       color: '#10B981'
     },
     {
       title: 'Dersler',
       description: 'Ders programı ve kapasite yönetimi',
       icon: Calendar,
-      route: '/admin/classes',
+      route: 'classes',
       color: '#8B5CF6'
-    },
-    {
-      title: 'Performans',
-      description: 'Eğitmen ve öğrenci performans analizi',
-      icon: Award,
-      route: '/performance',
-      color: '#F59E0B'
-    },
-    {
-      title: 'Gelir Takibi',
-      description: 'Finansal raporlar ve analiz',
-      icon: TrendingUp,
-      route: '/revenue',
-      color: '#EC4899'
     }
   ];
 
@@ -75,10 +66,7 @@ function CustomDrawerContent() {
             <TouchableOpacity
               key={index}
               style={styles.menuItem}
-              onPress={() => {
-                navigation.navigate(item.route);
-                closeDrawer();
-              }}
+              onPress={() => navigateToRoute(item.route)}
             >
               <View style={[styles.iconContainer, { backgroundColor: `${item.color}10` }]}>
                 <Icon size={20} color={item.color} />
@@ -96,6 +84,8 @@ function CustomDrawerContent() {
 }
 
 export default function AdminLayout() {
+  const navigation = useNavigation();
+
   return (
     <Drawer
       drawerContent={() => <CustomDrawerContent />}
@@ -112,7 +102,7 @@ export default function AdminLayout() {
           width: 320,
           backgroundColor: '#F9FAFB',
         },
-        headerRight: ({ navigation }) => (
+        headerRight: () => (
           <TouchableOpacity
             style={styles.burgerButton}
             onPress={() => navigation.dispatch(DrawerActions.openDrawer())}
