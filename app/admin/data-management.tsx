@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Platform, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Plus, X, Edit, Trash, Users, BookOpen, Calendar, Save } from 'lucide-react-native';
+import { Plus, X, FileEdit as Edit, Trash, Users, BookOpen, Calendar, Save } from 'lucide-react-native';
 import { useData, Student, Instructor, Class } from '../context/DataContext';
 
 type TabType = 'students' | 'instructors' | 'classes';
