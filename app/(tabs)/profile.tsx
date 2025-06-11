@@ -111,7 +111,7 @@ export default function ProfileScreen() {
     };
 
     return (
-      <ScrollView style={styles.scrollView}>
+      <View style={styles.container}>
         {/* Header */}
         <View style={styles.header}>
           <View style={styles.headerContent}>
@@ -136,225 +136,231 @@ export default function ProfileScreen() {
           </TouchableOpacity>
         </View>
 
-        {/* Contact Information */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>İletişim Bilgileri</Text>
-          <View style={styles.contactInfo}>
-            <View style={styles.contactItem}>
-              <Mail size={20} color="#6B7280" />
-              <Text style={styles.contactText}>{instructorData.email}</Text>
-            </View>
-            <View style={styles.contactItem}>
-              <Phone size={20} color="#6B7280" />
-              <Text style={styles.contactText}>{instructorData.phone}</Text>
-            </View>
-          </View>
-        </View>
-
-        {/* Specialties */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Uzmanlık Alanları</Text>
-          <View style={styles.specialties}>
-            {instructorData.specialties.map((specialty, index) => (
-              <View key={index} style={styles.specialtyBadge}>
-                <Text style={styles.specialtyText}>{specialty}</Text>
+        <ScrollView 
+          style={styles.scrollView}
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={true}
+        >
+          {/* Contact Information */}
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>İletişim Bilgileri</Text>
+            <View style={styles.contactInfo}>
+              <View style={styles.contactItem}>
+                <Mail size={20} color="#6B7280" />
+                <Text style={styles.contactText}>{instructorData.email}</Text>
               </View>
-            ))}
-          </View>
-        </View>
-
-        {/* Quick Stats */}
-        <View style={styles.statsContainer}>
-          <View style={styles.statCard}>
-            <Calendar size={24} color="#3B82F6" />
-            <Text style={styles.statValue}>{instructorData.totalClasses}</Text>
-            <Text style={styles.statLabel}>Toplam Ders</Text>
-          </View>
-          <View style={styles.statCard}>
-            <Users size={24} color="#10B981" />
-            <Text style={styles.statValue}>{totalStudents}</Text>
-            <Text style={styles.statLabel}>Toplam Öğrenci</Text>
-          </View>
-          <View style={styles.statCard}>
-            <BarChart3 size={24} color="#8B5CF6" />
-            <Text style={styles.statValue}>%{averageOccupancy}</Text>
-            <Text style={styles.statLabel}>Ortalama Doluluk</Text>
-          </View>
-        </View>
-
-        {/* Performance Metrics */}
-        <View style={styles.section}>
-          <TouchableOpacity 
-            style={styles.expandableHeader}
-            onPress={() => toggleSection('performance')}
-          >
-            <Text style={styles.sectionTitle}>Performans Metrikleri</Text>
-            <ChevronDown 
-              size={20} 
-              color="#6B7280" 
-              style={[
-                styles.chevron,
-                expandedSection === 'performance' && styles.chevronExpanded
-              ]}
-            />
-          </TouchableOpacity>
-          
-          {expandedSection === 'performance' && (
-            <View style={styles.expandableContent}>
-              <View style={styles.periodSection}>
-                <Text style={styles.periodTitle}>Haftalık Performans</Text>
-                <View style={styles.metricsGrid}>
-                  <View style={styles.metricCard}>
-                    <Calendar size={20} color="#3B82F6" />
-                    <Text style={styles.metricValue}>{instructorData.metrics.weekly.classes}</Text>
-                    <Text style={styles.metricLabel}>Ders</Text>
-                  </View>
-                  
-                  <View style={styles.metricCard}>
-                    <Users size={20} color="#10B981" />
-                    <Text style={styles.metricValue}>%{instructorData.metrics.weekly.attendance}</Text>
-                    <Text style={styles.metricLabel}>Katılım</Text>
-                  </View>
-                  
-                  <View style={styles.metricCard}>
-                    <TrendingUp size={20} color="#8B5CF6" />
-                    <Text style={styles.metricValue}>₺{instructorData.metrics.weekly.revenue.toLocaleString()}</Text>
-                    <Text style={styles.metricLabel}>Gelir</Text>
-                  </View>
-                </View>
-              </View>
-
-              <View style={styles.periodSection}>
-                <Text style={styles.periodTitle}>Aylık Performans</Text>
-                <View style={styles.metricsGrid}>
-                  <View style={styles.metricCard}>
-                    <Calendar size={20} color="#3B82F6" />
-                    <Text style={styles.metricValue}>{instructorData.metrics.monthly.classes}</Text>
-                    <Text style={styles.metricLabel}>Ders</Text>
-                  </View>
-                  
-                  <View style={styles.metricCard}>
-                    <Users size={20} color="#10B981" />
-                    <Text style={styles.metricValue}>%{instructorData.metrics.monthly.attendance}</Text>
-                    <Text style={styles.metricLabel}>Katılım</Text>
-                  </View>
-                  
-                  <View style={styles.metricCard}>
-                    <TrendingUp size={20} color="#8B5CF6" />
-                    <Text style={styles.metricValue}>₺{instructorData.metrics.monthly.revenue.toLocaleString()}</Text>
-                    <Text style={styles.metricLabel}>Gelir</Text>
-                  </View>
-                </View>
+              <View style={styles.contactItem}>
+                <Phone size={20} color="#6B7280" />
+                <Text style={styles.contactText}>{instructorData.phone}</Text>
               </View>
             </View>
-          )}
-        </View>
+          </View>
 
-        {/* My Classes */}
-        <View style={styles.section}>
-          <TouchableOpacity 
-            style={styles.expandableHeader}
-            onPress={() => toggleSection('classes')}
-          >
-            <Text style={styles.sectionTitle}>Derslerim ({myClasses.length})</Text>
-            <ChevronDown 
-              size={20} 
-              color="#6B7280" 
-              style={[
-                styles.chevron,
-                expandedSection === 'classes' && styles.chevronExpanded
-              ]}
-            />
-          </TouchableOpacity>
-          
-          {expandedSection === 'classes' && (
-            <View style={styles.expandableContent}>
-              {myClasses.map((cls) => (
-                <View key={cls.id} style={styles.classCard}>
-                  <View style={styles.classHeader}>
-                    <Text style={styles.className}>{cls.name}</Text>
-                    <View style={styles.priceBadge}>
-                      <Text style={styles.priceText}>₺{cls.price}</Text>
-                    </View>
-                  </View>
-                  <View style={styles.classDetails}>
-                    <Text style={styles.classInfo}>{cls.date} • {cls.time}</Text>
-                    <Text style={styles.classInfo}>
-                      Doluluk: {cls.enrolled}/{cls.capacity} (%{Math.round((cls.enrolled / cls.capacity) * 100)})
-                    </Text>
-                  </View>
+          {/* Specialties */}
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Uzmanlık Alanları</Text>
+            <View style={styles.specialties}>
+              {instructorData.specialties.map((specialty, index) => (
+                <View key={index} style={styles.specialtyBadge}>
+                  <Text style={styles.specialtyText}>{specialty}</Text>
                 </View>
               ))}
             </View>
-          )}
-        </View>
+          </View>
 
-        {/* Student Performance */}
-        <View style={styles.section}>
-          <TouchableOpacity 
-            style={styles.expandableHeader}
-            onPress={() => toggleSection('students')}
-          >
-            <Text style={styles.sectionTitle}>Öğrenci Performansları</Text>
-            <ChevronDown 
-              size={20} 
-              color="#6B7280" 
-              style={[
-                styles.chevron,
-                expandedSection === 'students' && styles.chevronExpanded
-              ]}
-            />
-          </TouchableOpacity>
-          
-          {expandedSection === 'students' && (
-            <View style={styles.expandableContent}>
-              {instructorData.students.map((student) => (
-                <View key={student.id} style={styles.studentCard}>
-                  <Text style={styles.studentName}>{student.name}</Text>
-                  
-                  <View style={styles.studentMetrics}>
-                    <View style={styles.studentMetricItem}>
-                      <Text style={styles.studentMetricValue}>{student.performance.totalClasses}</Text>
-                      <Text style={styles.studentMetricLabel}>Toplam Ders</Text>
+          {/* Quick Stats */}
+          <View style={styles.statsContainer}>
+            <View style={styles.statCard}>
+              <Calendar size={24} color="#3B82F6" />
+              <Text style={styles.statValue}>{instructorData.totalClasses}</Text>
+              <Text style={styles.statLabel}>Toplam Ders</Text>
+            </View>
+            <View style={styles.statCard}>
+              <Users size={24} color="#10B981" />
+              <Text style={styles.statValue}>{totalStudents}</Text>
+              <Text style={styles.statLabel}>Toplam Öğrenci</Text>
+            </View>
+            <View style={styles.statCard}>
+              <BarChart3 size={24} color="#8B5CF6" />
+              <Text style={styles.statValue}>%{averageOccupancy}</Text>
+              <Text style={styles.statLabel}>Ortalama Doluluk</Text>
+            </View>
+          </View>
+
+          {/* Performance Metrics */}
+          <View style={styles.section}>
+            <TouchableOpacity 
+              style={styles.expandableHeader}
+              onPress={() => toggleSection('performance')}
+            >
+              <Text style={styles.sectionTitle}>Performans Metrikleri</Text>
+              <ChevronDown 
+                size={20} 
+                color="#6B7280" 
+                style={[
+                  styles.chevron,
+                  expandedSection === 'performance' && styles.chevronExpanded
+                ]}
+              />
+            </TouchableOpacity>
+            
+            {expandedSection === 'performance' && (
+              <View style={styles.expandableContent}>
+                <View style={styles.periodSection}>
+                  <Text style={styles.periodTitle}>Haftalık Performans</Text>
+                  <View style={styles.metricsGrid}>
+                    <View style={styles.metricCard}>
+                      <Calendar size={20} color="#3B82F6" />
+                      <Text style={styles.metricValue}>{instructorData.metrics.weekly.classes}</Text>
+                      <Text style={styles.metricLabel}>Ders</Text>
                     </View>
-                    <View style={styles.studentMetricItem}>
-                      <Text style={styles.studentMetricValue}>%{student.performance.attendanceRate}</Text>
-                      <Text style={styles.studentMetricLabel}>Katılım Oranı</Text>
+                    
+                    <View style={styles.metricCard}>
+                      <Users size={20} color="#10B981" />
+                      <Text style={styles.metricValue}>%{instructorData.metrics.weekly.attendance}</Text>
+                      <Text style={styles.metricLabel}>Katılım</Text>
                     </View>
-                    <View style={styles.studentMetricItem}>
-                      <Text style={styles.studentMetricValue}>%{student.performance.improvement}</Text>
-                      <Text style={styles.studentMetricLabel}>Gelişim</Text>
+                    
+                    <View style={styles.metricCard}>
+                      <TrendingUp size={20} color="#8B5CF6" />
+                      <Text style={styles.metricValue}>₺{instructorData.metrics.weekly.revenue.toLocaleString()}</Text>
+                      <Text style={styles.metricLabel}>Gelir</Text>
                     </View>
                   </View>
+                </View>
 
-                  <View style={styles.attendanceHistory}>
-                    <Text style={styles.attendanceTitle}>Son Katılımlar</Text>
-                    {student.attendance.slice(0, 3).map((record, index) => (
-                      <View key={index} style={styles.attendanceRecord}>
-                        <View style={styles.attendanceInfo}>
-                          <Text style={styles.attendanceDate}>{formatDate(record.date)}</Text>
-                          <Text style={styles.attendanceClass}>{record.className}</Text>
-                        </View>
-                        {record.attended ? (
-                          <View style={styles.attendedBadge}>
-                            <CheckCircle size={16} color="#059669" />
-                            <Text style={styles.attendedText}>Katıldı</Text>
-                          </View>
-                        ) : (
-                          <View style={styles.absentBadge}>
-                            <XCircle size={16} color="#DC2626" />
-                            <Text style={styles.absentText}>Katılmadı</Text>
-                          </View>
-                        )}
+                <View style={styles.periodSection}>
+                  <Text style={styles.periodTitle}>Aylık Performans</Text>
+                  <View style={styles.metricsGrid}>
+                    <View style={styles.metricCard}>
+                      <Calendar size={20} color="#3B82F6" />
+                      <Text style={styles.metricValue}>{instructorData.metrics.monthly.classes}</Text>
+                      <Text style={styles.metricLabel}>Ders</Text>
+                    </View>
+                    
+                    <View style={styles.metricCard}>
+                      <Users size={20} color="#10B981" />
+                      <Text style={styles.metricValue}>%{instructorData.metrics.monthly.attendance}</Text>
+                      <Text style={styles.metricLabel}>Katılım</Text>
+                    </View>
+                    
+                    <View style={styles.metricCard}>
+                      <TrendingUp size={20} color="#8B5CF6" />
+                      <Text style={styles.metricValue}>₺{instructorData.metrics.monthly.revenue.toLocaleString()}</Text>
+                      <Text style={styles.metricLabel}>Gelir</Text>
+                    </View>
+                  </View>
+                </View>
+              </View>
+            )}
+          </View>
+
+          {/* My Classes */}
+          <View style={styles.section}>
+            <TouchableOpacity 
+              style={styles.expandableHeader}
+              onPress={() => toggleSection('classes')}
+            >
+              <Text style={styles.sectionTitle}>Derslerim ({myClasses.length})</Text>
+              <ChevronDown 
+                size={20} 
+                color="#6B7280" 
+                style={[
+                  styles.chevron,
+                  expandedSection === 'classes' && styles.chevronExpanded
+                ]}
+              />
+            </TouchableOpacity>
+            
+            {expandedSection === 'classes' && (
+              <View style={styles.expandableContent}>
+                {myClasses.map((cls) => (
+                  <View key={cls.id} style={styles.classCard}>
+                    <View style={styles.classHeader}>
+                      <Text style={styles.className}>{cls.name}</Text>
+                      <View style={styles.priceBadge}>
+                        <Text style={styles.priceText}>₺{cls.price}</Text>
                       </View>
-                    ))}
+                    </View>
+                    <View style={styles.classDetails}>
+                      <Text style={styles.classInfo}>{cls.date} • {cls.time}</Text>
+                      <Text style={styles.classInfo}>
+                        Doluluk: {cls.enrolled}/{cls.capacity} (%{Math.round((cls.enrolled / cls.capacity) * 100)})
+                      </Text>
+                    </View>
                   </View>
-                </View>
-              ))}
-            </View>
-          )}
-        </View>
-      </ScrollView>
+                ))}
+              </View>
+            )}
+          </View>
+
+          {/* Student Performance */}
+          <View style={[styles.section, styles.lastSection]}>
+            <TouchableOpacity 
+              style={styles.expandableHeader}
+              onPress={() => toggleSection('students')}
+            >
+              <Text style={styles.sectionTitle}>Öğrenci Performansları</Text>
+              <ChevronDown 
+                size={20} 
+                color="#6B7280" 
+                style={[
+                  styles.chevron,
+                  expandedSection === 'students' && styles.chevronExpanded
+                ]}
+              />
+            </TouchableOpacity>
+            
+            {expandedSection === 'students' && (
+              <View style={styles.expandableContent}>
+                {instructorData.students.map((student) => (
+                  <View key={student.id} style={styles.studentCard}>
+                    <Text style={styles.studentName}>{student.name}</Text>
+                    
+                    <View style={styles.studentMetrics}>
+                      <View style={styles.studentMetricItem}>
+                        <Text style={styles.studentMetricValue}>{student.performance.totalClasses}</Text>
+                        <Text style={styles.studentMetricLabel}>Toplam Ders</Text>
+                      </View>
+                      <View style={styles.studentMetricItem}>
+                        <Text style={styles.studentMetricValue}>%{student.performance.attendanceRate}</Text>
+                        <Text style={styles.studentMetricLabel}>Katılım Oranı</Text>
+                      </View>
+                      <View style={styles.studentMetricItem}>
+                        <Text style={styles.studentMetricValue}>%{student.performance.improvement}</Text>
+                        <Text style={styles.studentMetricLabel}>Gelişim</Text>
+                      </View>
+                    </View>
+
+                    <View style={styles.attendanceHistory}>
+                      <Text style={styles.attendanceTitle}>Son Katılımlar</Text>
+                      {student.attendance.slice(0, 3).map((record, index) => (
+                        <View key={index} style={styles.attendanceRecord}>
+                          <View style={styles.attendanceInfo}>
+                            <Text style={styles.attendanceDate}>{formatDate(record.date)}</Text>
+                            <Text style={styles.attendanceClass}>{record.className}</Text>
+                          </View>
+                          {record.attended ? (
+                            <View style={styles.attendedBadge}>
+                              <CheckCircle size={16} color="#059669" />
+                              <Text style={styles.attendedText}>Katıldı</Text>
+                            </View>
+                          ) : (
+                            <View style={styles.absentBadge}>
+                              <XCircle size={16} color="#DC2626" />
+                              <Text style={styles.absentText}>Katılmadı</Text>
+                            </View>
+                          )}
+                        </View>
+                      ))}
+                    </View>
+                  </View>
+                ))}
+              </View>
+            )}
+          </View>
+        </ScrollView>
+      </View>
     );
   };
 
@@ -563,6 +569,9 @@ const styles = StyleSheet.create({
   scrollView: {
     flex: 1
   },
+  scrollContent: {
+    paddingBottom: 120, // Extra padding for bottom content
+  },
   header: {
     padding: 16,
     backgroundColor: 'white'
@@ -687,6 +696,9 @@ const styles = StyleSheet.create({
         boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
       },
     }),
+  },
+  lastSection: {
+    marginBottom: 32, // Extra margin for last section
   },
   sectionTitle: {
     fontSize: 18,
