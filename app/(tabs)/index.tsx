@@ -326,7 +326,13 @@ export default function HomeScreen() {
 
   // Admin kullanıcısı için bu sayfa gösterilmez, admin paneline yönlendirilir
   if (currentUser.role === 'admin') {
-    return null;
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={styles.loadingContainer}>
+          <Text style={styles.loadingText}>Admin paneline yönlendiriliyor...</Text>
+        </View>
+      </SafeAreaView>
+    );
   }
 
   return (
@@ -382,6 +388,15 @@ const styles = StyleSheet.create({
   },
   scrollView: {
     flex: 1,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingText: {
+    fontSize: 16,
+    color: '#6B7280',
   },
   header: {
     alignItems: 'center',

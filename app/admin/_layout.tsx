@@ -4,9 +4,11 @@ import { Menu, X, Users, BookOpen, Calendar, Database, LogOut } from 'lucide-rea
 import { DrawerActions, useNavigation } from '@react-navigation/native';
 import { useContext } from 'react';
 import { UserContext } from '../context/UserContext';
+import { useRouter } from 'expo-router';
 
 function CustomDrawerContent() {
   const navigation = useNavigation();
+  const router = useRouter();
   const { currentUser, setCurrentUser } = useContext(UserContext);
 
   const closeDrawer = () => {
@@ -16,10 +18,11 @@ function CustomDrawerContent() {
   const handleLogout = () => {
     setCurrentUser(null);
     closeDrawer();
+    router.replace('/');
   };
 
   const navigateToRoute = (route: string) => {
-    navigation.navigate(route as never);
+    router.push(`/admin/${route}` as any);
     closeDrawer();
   };
 
