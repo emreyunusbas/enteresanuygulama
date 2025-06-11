@@ -20,7 +20,7 @@ function DrawerContent() {
         options={{ 
           drawerLabel: 'Ana Sayfa',
           drawerItemStyle: { 
-            display: isAdmin ? 'flex' : 'none'
+            display: !isAdmin ? 'flex' : 'none'
           }
         }} 
       />
@@ -38,7 +38,7 @@ function DrawerContent() {
         options={{ 
           drawerLabel: 'Eğitmen Performansı',
           drawerItemStyle: { 
-            display: isAdmin ? 'flex' : 'none'
+            display: (isAdmin || isInstructor) ? 'flex' : 'none'
           }
         }} 
       />
