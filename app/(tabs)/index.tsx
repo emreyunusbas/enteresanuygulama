@@ -112,7 +112,12 @@ export default function HomeScreen() {
   // Admin kullanıcısını otomatik olarak admin paneline yönlendir
   useEffect(() => {
     if (currentUser?.role === 'admin') {
-      router.replace('/admin');
+      // Kısa bir gecikme ile yönlendirme yap
+      const timer = setTimeout(() => {
+        router.replace('/admin');
+      }, 500);
+      
+      return () => clearTimeout(timer);
     }
   }, [currentUser, router]);
 
@@ -324,12 +329,14 @@ export default function HomeScreen() {
     );
   }
 
-  // Admin kullanıcısı için bu sayfa gösterilmez, admin paneline yönlendirilir
+  // Admin kullanıcısı için yönlendirme ekranı
   if (currentUser.role === 'admin') {
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.loadingContainer}>
+          <Activity size={48} color="#4F46E5" />
           <Text style={styles.loadingText}>Admin paneline yönlendiriliyor...</Text>
+          <Text style={styles.loadingSubtext}>Lütfen bekleyiniz</Text>
         </View>
       </SafeAreaView>
     );
@@ -388,15 +395,6 @@ const styles = StyleSheet.create({
   },
   scrollView: {
     flex: 1,
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  loadingText: {
-    fontSize: 16,
-    color: '#6B7280',
   },
   header: {
     alignItems: 'center',
@@ -500,6 +498,25 @@ const styles = StyleSheet.create({
   logoutText: {
     color: '#4B5563',
     fontSize: 14,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  loadingText: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#1F2937',
+    marginTop: 16,
+    textAlign: 'center',
+  },
+  loadingSubtext: {
+    fontSize: 14,
+    color: '#6B7280',
+    marginTop: 8,
+    textAlign: 'center',
   },
   statsGrid: {
     padding: 16,
