@@ -1,8 +1,11 @@
 import React from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { BarChart3, TrendingUp, X } from 'lucide-react-native';
+import { BarChart3, TrendingUp, X, Home } from 'lucide-react-native';
 import { useNavigation } from '@react-navigation/native';
+import { useRouter } from 'expo-router';
+import { useContext } from 'react';
+import { UserContext } from './context/UserContext';
 
 const weeklyRevenue = {
   total: 156780,
@@ -52,6 +55,13 @@ const yearlyRevenue = {
 
 export default function RevenueScreen() {
   const navigation = useNavigation();
+  const router = useRouter();
+  const { setCurrentUser } = useContext(UserContext);
+
+  const handleGoHome = () => {
+    setCurrentUser(null);
+    router.replace('/');
+  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -61,12 +71,21 @@ export default function RevenueScreen() {
             <BarChart3 size={24} color="#8B5CF6" />
             <Text style={styles.title}>Ciro Analizi</Text>
           </View>
-          <TouchableOpacity
-            style={styles.closeButton}
-            onPress={() => navigation.goBack()}
-          >
-            <X size={24} color="#4B5563" />
-          </TouchableOpacity>
+          <View style={styles.headerRight}>
+            <TouchableOpacity
+              style={styles.homeButton}
+              onPress={handleGoHome}
+            >
+              <Home size={20} color="white" />
+              <Text style={styles.homeButtonText}>Ana Sayfa</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.closeButton}
+              onPress={() => navigation.goBack()}
+            >
+              <X size={24} color="#4B5563" />
+            </TouchableOpacity>
+          </View>
         </View>
 
         <View style={styles.section}>
@@ -254,6 +273,25 @@ const styles = StyleSheet.create({
   headerLeft: {
     flexDirection: 'row',
     alignItems: 'center',
+  },
+  headerRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  homeButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#4F46E5',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 16,
+    gap: 6,
+  },
+  homeButtonText: {
+    color: 'white',
+    fontSize: 14,
+    fontWeight: '500',
   },
   closeButton: {
     padding: 8,

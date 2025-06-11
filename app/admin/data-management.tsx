@@ -1,8 +1,11 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Platform, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Plus, X, FileEdit as Edit, Trash, Users, BookOpen, Calendar, Save } from 'lucide-react-native';
+import { Plus, X, FileEdit as Edit, Trash, Users, BookOpen, Calendar, Save, Home } from 'lucide-react-native';
 import { useData, Student, Instructor, Class } from '../context/DataContext';
+import { useRouter } from 'expo-router';
+import { useContext } from 'react';
+import { UserContext } from '../context/UserContext';
 
 type TabType = 'students' | 'instructors' | 'classes';
 
@@ -22,10 +25,18 @@ export default function DataManagementScreen() {
     deleteClass
   } = useData();
 
+  const router = useRouter();
+  const { setCurrentUser } = useContext(UserContext);
+
   const [activeTab, setActiveTab] = useState<TabType>('students');
   const [showForm, setShowForm] = useState(false);
   const [editingItem, setEditingItem] = useState<any>(null);
   const [formData, setFormData] = useState<any>({});
+
+  const handleGoHome = () => {
+    setCurrentUser(null);
+    router.replace('/');
+  };
 
   const resetForm = () => {
     setFormData({});
@@ -480,13 +491,22 @@ export default function DataManagementScreen() {
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.title}>Veri Yönetimi</Text>
-        <TouchableOpacity
-          style={styles.addButton}
-          onPress={() => setShowForm(true)}
-        >
-          <Plus size={20} color="white" />
-          <Text style={styles.addButtonText}>Yeni Ekle</Text>
-        </TouchableOpacity>
+        <View style={styles.headerRight}>
+          <TouchableOpacity
+            style={styles.homeButton}
+            onPress={handleGoHome}
+          >
+            <Home size={20} color="white" />
+            <Text style={styles.homeButtonText}>Ana Sayfa</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.addButton}
+            onPress={() => setShowForm(true)}
+          >
+            <Plus size={20} color="white" />
+            <Text style={styles.addButtonText}>Yeni Ekle</Text>
+          </TouchableOpacity>
+        </View>
       </View>
 
       <View style={styles.tabContainer}>
@@ -578,10 +598,29 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#1F2937',
   },
-  addButton: {
+  headerRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  homeButton: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#4F46E5',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 8,
+    gap: 6,
+  },
+  homeButtonText: {
+    color: 'white',
+    fontSize: 14,
+    fontWeight: '500',
+  },
+  addButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#10B981',
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 8,

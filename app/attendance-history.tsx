@@ -1,9 +1,10 @@
 import React, { useContext } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Calendar, X, Check, AlertCircle } from 'lucide-react-native';
+import { Calendar, X, Check, AlertCircle, Home } from 'lucide-react-native';
 import { useNavigation } from '@react-navigation/native';
 import { UserContext } from './context/UserContext';
+import { useRouter } from 'expo-router';
 
 const attendanceHistory = [
   {
@@ -57,7 +58,13 @@ const attendanceHistory = [
 
 export default function AttendanceHistoryScreen() {
   const navigation = useNavigation();
-  const { currentUser } = useContext(UserContext);
+  const router = useRouter();
+  const { currentUser, setCurrentUser } = useContext(UserContext);
+
+  const handleGoHome = () => {
+    setCurrentUser(null);
+    router.replace('/');
+  };
 
   // Filter attendance history based on user role
   const filteredHistory = attendanceHistory.filter(student => {
@@ -88,12 +95,21 @@ export default function AttendanceHistoryScreen() {
             <Calendar size={24} color="#8B5CF6" />
             <Text style={styles.title}>Katılım Geçmişi</Text>
           </View>
-          <TouchableOpacity
-            style={styles.closeButton}
-            onPress={() => navigation.goBack()}
-          >
-            <X size={24} color="#4B5563" />
-          </TouchableOpacity>
+          <View style={styles.headerRight}>
+            <TouchableOpacity
+              style={styles.homeButton}
+              onPress={handleGoHome}
+            >
+              <Home size={20} color="white" />
+              <Text style={styles.homeButtonText}>Ana Sayfa</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.closeButton}
+              onPress={() => navigation.goBack()}
+            >
+              <X size={24} color="#4B5563" />
+            </TouchableOpacity>
+          </View>
         </View>
         <View style={styles.emptyState}>
           <Text style={styles.emptyStateText}>
@@ -112,12 +128,21 @@ export default function AttendanceHistoryScreen() {
             <Calendar size={24} color="#8B5CF6" />
             <Text style={styles.title}>Katılım Geçmişi</Text>
           </View>
-          <TouchableOpacity
-            style={styles.closeButton}
-            onPress={() => navigation.goBack()}
-          >
-            <X size={24} color="#4B5563" />
-          </TouchableOpacity>
+          <View style={styles.headerRight}>
+            <TouchableOpacity
+              style={styles.homeButton}
+              onPress={handleGoHome}
+            >
+              <Home size={20} color="white" />
+              <Text style={styles.homeButtonText}>Ana Sayfa</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.closeButton}
+              onPress={() => navigation.goBack()}
+            >
+              <X size={24} color="#4B5563" />
+            </TouchableOpacity>
+          </View>
         </View>
 
         {filteredHistory.map((student) => (
@@ -178,11 +203,30 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
   },
+  headerRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
   title: {
     fontSize: 20,
     fontWeight: 'bold',
     color: '#1F2937',
     marginLeft: 8,
+  },
+  homeButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#4F46E5',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 16,
+    gap: 6,
+  },
+  homeButtonText: {
+    color: 'white',
+    fontSize: 14,
+    fontWeight: '500',
   },
   closeButton: {
     padding: 8,

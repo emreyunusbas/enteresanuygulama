@@ -1,8 +1,11 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Animated } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Users, X, Calendar, TrendingUp, Clock, ChevronDown } from 'lucide-react-native';
+import { Users, X, Calendar, TrendingUp, Clock, ChevronDown, Home } from 'lucide-react-native';
 import { useNavigation } from '@react-navigation/native';
+import { useRouter } from 'expo-router';
+import { useContext } from 'react';
+import { UserContext } from './context/UserContext';
 
 const studentPerformance = {
   overview: {
@@ -153,7 +156,14 @@ function StudentAccordion({ student, isOpen, onToggle }) {
 
 export default function StudentPerformanceScreen() {
   const navigation = useNavigation();
+  const router = useRouter();
+  const { setCurrentUser } = useContext(UserContext);
   const [openAccordion, setOpenAccordion] = useState(null);
+
+  const handleGoHome = () => {
+    setCurrentUser(null);
+    router.replace('/');
+  };
 
   const toggleAccordion = (studentId) => {
     setOpenAccordion(openAccordion === studentId ? null : studentId);
@@ -167,12 +177,21 @@ export default function StudentPerformanceScreen() {
             <Users size={24} color="#8B5CF6" />
             <Text style={styles.title}>Öğrenci Performansı</Text>
           </View>
-          <TouchableOpacity
-            style={styles.closeButton}
-            onPress={() => navigation.goBack()}
-          >
-            <X size={24} color="#4B5563" />
-          </TouchableOpacity>
+          <View style={styles.headerRight}>
+            <TouchableOpacity
+              style={styles.homeButton}
+              onPress={handleGoHome}
+            >
+              <Home size={20} color="white" />
+              <Text style={styles.homeButtonText}>Ana Sayfa</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.closeButton}
+              onPress={() => navigation.goBack()}
+            >
+              <X size={24} color="#4B5563" />
+            </TouchableOpacity>
+          </View>
         </View>
 
         <View style={styles.overviewSection}>
@@ -262,6 +281,25 @@ const styles = StyleSheet.create({
   headerLeft: {
     flexDirection: 'row',
     alignItems: 'center',
+  },
+  headerRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  homeButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#4F46E5',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 16,
+    gap: 6,
+  },
+  homeButtonText: {
+    color: 'white',
+    fontSize: 14,
+    fontWeight: '500',
   },
   title: {
     fontSize: 20,
