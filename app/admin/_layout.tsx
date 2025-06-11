@@ -1,16 +1,21 @@
 import { Drawer } from 'expo-router/drawer';
 import { TouchableOpacity, View, Text, StyleSheet } from 'react-native';
-import { Menu, X, Users, BookOpen, Calendar, Database, Award, TrendingUp } from 'lucide-react-native';
+import { Menu, X, Users, BookOpen, Calendar, Database, LogOut } from 'lucide-react-native';
 import { DrawerActions, useNavigation } from '@react-navigation/native';
 import { useContext } from 'react';
 import { UserContext } from '../context/UserContext';
 
 function CustomDrawerContent() {
   const navigation = useNavigation();
-  const { currentUser } = useContext(UserContext);
+  const { currentUser, setCurrentUser } = useContext(UserContext);
 
   const closeDrawer = () => {
     navigation.dispatch(DrawerActions.closeDrawer());
+  };
+
+  const handleLogout = () => {
+    setCurrentUser(null);
+    closeDrawer();
   };
 
   const navigateToRoute = (route: string) => {
@@ -52,9 +57,15 @@ function CustomDrawerContent() {
   return (
     <View style={styles.drawerContainer}>
       <View style={styles.drawerHeader}>
-        <TouchableOpacity onPress={closeDrawer} style={styles.closeButton}>
-          <X size={24} color="#4B5563" />
-        </TouchableOpacity>
+        <View style={styles.headerTop}>
+          <TouchableOpacity onPress={handleLogout} style={styles.logoutButton}>
+            <LogOut size={20} color="white" />
+            <Text style={styles.logoutText}>Çıkış</Text>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={closeDrawer} style={styles.closeButton}>
+            <X size={24} color="white" />
+          </TouchableOpacity>
+        </View>
         <Text style={styles.drawerTitle}>Yönetim Paneli</Text>
         <Text style={styles.drawerSubtitle}>Hoş geldin, {currentUser?.name}</Text>
       </View>
@@ -165,9 +176,27 @@ const styles = StyleSheet.create({
     padding: 24,
     paddingTop: 60,
   },
-  closeButton: {
-    alignSelf: 'flex-end',
+  headerTop: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     marginBottom: 16,
+  },
+  logoutButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 20,
+    gap: 6,
+  },
+  logoutText: {
+    color: 'white',
+    fontSize: 14,
+    fontWeight: '500',
+  },
+  closeButton: {
     backgroundColor: 'rgba(255, 255, 255, 0.2)',
     borderRadius: 20,
     padding: 8,
