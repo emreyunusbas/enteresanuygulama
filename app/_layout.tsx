@@ -7,14 +7,38 @@ import { AttendanceProvider } from './context/AttendanceContext';
 import { DataProvider } from './context/DataContext';
 import { useContext } from 'react';
 import { UserContext } from './context/UserContext';
+import { TouchableOpacity, Text, StyleSheet } from 'react-native';
+import { LogOut } from 'lucide-react-native';
+import { useRouter } from 'expo-router';
 
 function DrawerContent() {
-  const { currentUser } = useContext(UserContext);
+  const { currentUser, setCurrentUser } = useContext(UserContext);
+  const router = useRouter();
   const isAdmin = currentUser?.role === 'admin';
   const isInstructor = currentUser?.role === 'instructor';
 
+  const handleLogout = () => {
+    setCurrentUser(null);
+    router.replace('/');
+  };
+
   return (
-    <Drawer screenOptions={{ headerShown: false }}>
+    <Drawer 
+      screenOptions={{ 
+        headerShown: false,
+        headerRight: () => (
+          isAdmin ? (
+            <TouchableOpacity
+              style={styles.headerLogoutButton}
+              onPress={handleLogout}
+            >
+              <LogOut size={20} color="white" />
+              <Text style={styles.headerLogoutText}>Çıkış</Text>
+            </TouchableOpacity>
+          ) : null
+        )
+      }}
+    >
       <Drawer.Screen 
         name="(tabs)" 
         options={{ 
@@ -88,3 +112,21 @@ export default function RootLayout() {
     </DataProvider>
   );
 }
+
+const styles = StyleSheet.create({
+  headerLogoutButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 16,
+    marginRight: 16,
+    gap: 6,
+  },
+  headerLogoutText: {
+    color: 'white',
+    fontSize: 14,
+    fontWeight: '500',
+  },
+});

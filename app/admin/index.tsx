@@ -2,7 +2,9 @@ import React from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
-import { BarChart3, TrendingUp, Users, Calendar, Activity } from 'lucide-react-native';
+import { BarChart3, TrendingUp, Users, Calendar, Activity, LogOut } from 'lucide-react-native';
+import { useContext } from 'react';
+import { UserContext } from '../context/UserContext';
 
 const dailyStats = {
   totalRevenue: 32450,
@@ -44,6 +46,12 @@ const recentActivities = [
 
 export default function AdminPanel() {
   const router = useRouter();
+  const { setCurrentUser } = useContext(UserContext);
+
+  const handleLogout = () => {
+    setCurrentUser(null);
+    router.replace('/');
+  };
 
   const quickActions = [
     {
@@ -78,10 +86,20 @@ export default function AdminPanel() {
 
   return (
     <SafeAreaView style={styles.container}>
+      <View style={styles.header}>
+        <Text style={styles.welcomeText}>Yönetim Paneli</Text>
+        <TouchableOpacity
+          style={styles.logoutButton}
+          onPress={handleLogout}
+        >
+          <LogOut size={20} color="white" />
+          <Text style={styles.logoutText}>Ana Sayfaya Dön</Text>
+        </TouchableOpacity>
+      </View>
+
       <ScrollView style={styles.scrollView}>
-        <View style={styles.header}>
-          <Text style={styles.welcomeText}>Yönetim Paneli</Text>
-          <Text style={styles.subtitle}>
+        <View style={styles.subtitle}>
+          <Text style={styles.subtitleText}>
             Stüdyonuzun güncel durumunu buradan takip edebilirsiniz.
           </Text>
         </View>
@@ -177,22 +195,43 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#F3F4F6',
   },
+  header: {
+    backgroundColor: '#4F46E5',
+    padding: 16,
+    paddingTop: 60,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  welcomeText: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: 'white',
+  },
+  logoutButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 16,
+    gap: 6,
+  },
+  logoutText: {
+    color: 'white',
+    fontSize: 14,
+    fontWeight: '500',
+  },
   scrollView: {
     flex: 1,
   },
-  header: {
-    padding: 24,
+  subtitle: {
+    padding: 16,
     backgroundColor: 'white',
     borderBottomWidth: 1,
     borderBottomColor: '#E5E7EB',
   },
-  welcomeText: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: '#1F2937',
-    marginBottom: 8,
-  },
-  subtitle: {
+  subtitleText: {
     fontSize: 16,
     color: '#6B7280',
   },
